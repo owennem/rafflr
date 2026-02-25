@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}My Wins - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">My Wins</h1>
+
+    {% if won_listings %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for listing in won_listings %}
+        <a href="/listings/{{ listing.id }}" class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md">
+            {% if listing.image_url %}
+            <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-48 object-cover">
+            {% else %}
+            <div class="w-full h-48 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                </svg>
+            </div>
+            {% endif %}
+            <div class="p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">Winner</span>
+                </div>
+                <h3 class="font-semibold text-lg text-gray-900">{{ listing.title }}</h3>
+                <p class="text-sm text-gray-500 mt-1">by {{ listing.seller.username }}</p>
+                <p class="text-sm text-gray-500 mt-2">Won on {{ listing.drawn_at.strftime('%B %d, %Y') }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+        <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+            </svg>
+        </div>
+        <p class="text-gray-500 text-lg">No wins yet. Keep entering raffles!</p>
+        <a href="/listings" class="mt-4 inline-block bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+            Browse Raffles
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Listing - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Edit Listing</h1>
+
+    {% if error %}
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-6">
+        Only title, description, and image can be edited after creation. Price and draw settings cannot be changed.
+    </div>
+
+    <form action="/listings/{{ listing.id }}/edit" method="POST" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+        {{ csrf_input() }}
+        <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">Title *</label>
+            <input type="text" id="title" name="title" required value="{{ listing.title }}"
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+        </div>
+
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea id="description" name="description" rows="4"
+                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">{{ listing.description or '' }}</textarea>
+        </div>
+
+        <div>
+            <label for="image_url" class="block text-sm font-medium text-gray-700">Image URL</label>
+            <input type="url" id="image_url" name="image_url" value="{{ listing.image_url or '' }}"
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-md">
+            <h3 class="font-medium text-gray-700 mb-2">Raffle Settings (read-only)</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-500">Ticket Price:</span>
+                    <span class="ml-2 font-medium">${{ "%.2f"|format(listing.ticket_price) }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500">Max Tickets:</span>
+                    <span class="ml-2 font-medium">{{ listing.max_tickets }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500">Draw Type:</span>
+                    <span class="ml-2 font-medium">{{ listing.draw_type.value }}</span>
+                </div>
+                {% if listing.ticket_limit %}
+                <div>
+                    <span class="text-gray-500">Ticket Limit:</span>
+                    <span class="ml-2 font-medium">{{ listing.ticket_limit }}</span>
+                </div>
+                {% endif %}
+                {% if listing.deadline %}
+                <div>
+                    <span class="text-gray-500">Deadline:</span>
+                    <span class="ml-2 font-medium">{{ listing.deadline.strftime('%b %d, %Y %I:%M %p') }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="pt-4 flex gap-4">
+            <button type="submit" class="flex-grow bg-primary text-white px-6 py-3 rounded-md font-semibold hover:bg-primary-dark">
+                Save Changes
+            </button>
+            <a href="/listings/{{ listing.id }}" class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <p class="text-sm text-gray-500">Total Users</p>
+            <p class="text-3xl font-bold text-gray-900">{{ total_users }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <p class="text-sm text-gray-500">Total Listings</p>
+            <p class="text-3xl font-bold text-gray-900">{{ total_listings }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <p class="text-sm text-gray-500">Active Listings</p>
+            <p class="text-3xl font-bold text-green-600">{{ active_listings }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <p class="text-sm text-gray-500">Total Revenue</p>
+            <p class="text-3xl font-bold text-primary">${{ "%.2f"|format(revenue) }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <a href="/admin/users" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md">
+            <h3 class="font-semibold text-gray-900">Manage Users</h3>
+            <p class="text-sm text-gray-500 mt-1">View and manage all users</p>
+        </a>
+        <a href="/admin/listings" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md">
+            <h3 class="font-semibold text-gray-900">Manage Listings</h3>
+            <p class="text-sm text-gray-500 mt-1">View and manage all listings</p>
+        </a>
+        <a href="/admin/transactions" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md">
+            <h3 class="font-semibold text-gray-900">Transactions</h3>
+            <p class="text-sm text-gray-500 mt-1">View all transactions</p>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Users</h2>
+            <div class="space-y-3">
+                {% for u in recent_users %}
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                    <div>
+                        <p class="font-medium text-gray-900">{{ u.username }}</p>
+                        <p class="text-sm text-gray-500">{{ u.email }}</p>
+                    </div>
+                    <span class="text-xs text-gray-500">{{ u.created_at.strftime('%b %d') }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Listings</h2>
+            <div class="space-y-3">
+                {% for listing in recent_listings %}
+                <a href="/listings/{{ listing.id }}" class="block p-3 bg-gray-50 rounded-md hover:bg-gray-100">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ listing.title }}</p>
+                            <p class="text-sm text-gray-500">by {{ listing.seller.username }}</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full
+                            {% if listing.status.value == 'active' %}bg-green-100 text-green-800
+                            {% elif listing.status.value == 'drawn' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ listing.status.value }}
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

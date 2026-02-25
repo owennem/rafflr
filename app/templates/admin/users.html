@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Manage Users</h1>
+        <a href="/admin" class="text-primary hover:underline">&larr; Back to Admin</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <form action="/admin/users" method="GET" class="flex gap-4">
+            <input type="text" name="search" value="{{ search or '' }}" placeholder="Search by username or email..."
+                   class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+            <button type="submit" class="bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200">Search</button>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for u in users %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="font-medium text-gray-900">{{ u.username }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ u.email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if u.is_admin %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">Admin</span>
+                        {% endif %}
+                        {% if u.is_verified %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Verified</span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Unverified</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ u.created_at.strftime('%b %d, %Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        {% if not u.is_verified %}
+                        <form action="/admin/users/{{ u.id }}/verify" method="POST" class="inline">
+                            {{ csrf_input() }}
+                            <button type="submit" class="text-green-600 hover:underline">Verify</button>
+                        </form>
+                        {% endif %}
+                        {% if u.id != user.id %}
+                        <form action="/admin/users/{{ u.id }}/toggle-admin" method="POST" class="inline">
+                            {{ csrf_input() }}
+                            <button type="submit" class="text-purple-600 hover:underline">
+                                {% if u.is_admin %}Remove Admin{% else %}Make Admin{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="mt-6 flex justify-center gap-2">
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}&search={{ search or '' }}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Previous</a>
+        {% endif %}
+        <span class="px-4 py-2">Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}&search={{ search or '' }}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

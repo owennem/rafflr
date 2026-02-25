@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}{{ listing.title }} - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="md:flex">
+            <div class="md:w-1/2">
+                {% if listing.image_url %}
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-96 object-cover">
+                {% else %}
+                <div class="w-full h-96 bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-400 text-xl">No image</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="md:w-1/2 p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">{{ listing.title }}</h1>
+                        <p class="text-sm text-gray-500 mt-1">Listed by {{ listing.seller.username }}</p>
+                    </div>
+                    {% if listing.status.value == 'active' %}
+                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Active</span>
+                    {% elif listing.status.value == 'drawn' %}
+                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Drawn</span>
+                    {% else %}
+                    <span class="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full">Cancelled</span>
+                    {% endif %}
+                </div>
+
+                {% if listing.description %}
+                <p class="mt-4 text-gray-600">{{ listing.description }}</p>
+                {% endif %}
+
+                <div class="mt-6 border-t pt-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-3xl font-bold text-primary">${{ "%.2f"|format(listing.ticket_price) }}</span>
+                        <span class="text-gray-500">per ticket</span>
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>{{ listing.tickets_sold }} of {{ listing.max_tickets }} tickets sold</span>
+                            <span>{{ ((listing.tickets_sold / listing.max_tickets) * 100)|int }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-primary rounded-full h-3" style="width: {{ (listing.tickets_sold / listing.max_tickets * 100)|int }}%"></div>
+                        </div>
+                    </div>
+
+                    {% if listing.deadline %}
+                    <p class="mt-4 text-sm text-gray-600">
+                        <strong>Deadline:</strong> {{ listing.deadline.strftime('%B %d, %Y at %I:%M %p') }}
+                    </p>
+                    {% endif %}
+
+                    {% if listing.ticket_limit %}
+                    <p class="mt-2 text-sm text-gray-600">
+                        <strong>Auto-draw at:</strong> {{ listing.ticket_limit }} tickets
+                    </p>
+                    {% endif %}
+                </div>
+
+                {% if listing.status.value == 'active' %}
+                    {% if user and not is_seller %}
+                    <div class="mt-6 border-t pt-6">
+                        {% if user_tickets > 0 %}
+                        <p class="text-sm text-gray-600 mb-4">
+                            You have <strong>{{ user_tickets }}</strong> ticket(s) - <strong>{{ "%.1f"|format(user_odds) }}%</strong> chance of winning
+                        </p>
+                        {% endif %}
+
+                        {% if error %}
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                            {{ error }}
+                        </div>
+                        {% endif %}
+
+                        <form action="/tickets/purchase" method="POST" class="flex gap-4">
+                            {{ csrf_input() }}
+                            <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                            <div class="flex-grow">
+                                <label for="quantity" class="block text-sm font-medium text-gray-700">Tickets</label>
+                                <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ listing.max_tickets - listing.tickets_sold }}"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                            </div>
+                            <div class="flex items-end">
+                                <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+                                    Buy Tickets
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% elif not user %}
+                    <div class="mt-6 border-t pt-6">
+                        <p class="text-gray-600 mb-4">Sign in to purchase tickets</p>
+                        <a href="/auth/login" class="block text-center bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+                            Sign In
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if is_seller %}
+                    <div class="mt-6 border-t pt-6 space-y-3">
+                        <a href="/listings/{{ listing.id }}/edit" class="block text-center bg-gray-100 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-200">
+                            Edit Listing
+                        </a>
+                        {% if listing.tickets_sold > 0 %}
+                        <form action="/listings/{{ listing.id }}/draw" method="POST">
+                            {{ csrf_input() }}
+                            <button type="submit" class="w-full bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+                                    onclick="return confirm('Are you sure you want to draw the raffle now?')">
+                                Draw Winner Now
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form action="/listings/{{ listing.id }}/cancel" method="POST">
+                            {{ csrf_input() }}
+                            <button type="submit" class="w-full bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700"
+                                    onclick="return confirm('Are you sure you want to cancel this raffle?')">
+                                Cancel Raffle
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                {% elif listing.status.value == 'drawn' %}
+                <div class="mt-6 border-t pt-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                        <p class="text-blue-800 font-semibold">Winner: {{ listing.winner.username }}</p>
+                        <p class="text-blue-600 text-sm mt-1">Drawn on {{ listing.drawn_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="/listings" class="text-primary hover:underline">&larr; Back to listings</a>
+    </div>
+</div>
+{% endblock %}

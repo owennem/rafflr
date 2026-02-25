@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}My Tickets - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">My Tickets</h1>
+
+    {% if active_tickets %}
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Active Raffles</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for ticket in active_tickets %}
+            <a href="/listings/{{ ticket.listing.id }}" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md">
+                <h3 class="font-semibold text-gray-900">{{ ticket.listing.title }}</h3>
+                <div class="mt-4 flex justify-between items-center">
+                    <span class="text-primary font-bold">{{ ticket.quantity }} ticket(s)</span>
+                    <span class="text-sm text-gray-500">${{ "%.2f"|format(ticket.listing.ticket_price * ticket.quantity) }}</span>
+                </div>
+                <div class="mt-4">
+                    <div class="flex justify-between text-sm text-gray-500 mb-1">
+                        <span>{{ ticket.listing.tickets_sold }}/{{ ticket.listing.max_tickets }} sold</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-primary rounded-full h-2" style="width: {{ (ticket.listing.tickets_sold / ticket.listing.max_tickets * 100)|int }}%"></div>
+                    </div>
+                </div>
+                {% if ticket.listing.deadline %}
+                <p class="mt-3 text-xs text-gray-500">Ends: {{ ticket.listing.deadline.strftime('%b %d, %Y %I:%M %p') }}</p>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if past_tickets %}
+    <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Past Raffles</h2>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Raffle</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tickets</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for ticket in past_tickets %}
+                    <tr>
+                        <td class="px-6 py-4">
+                            <a href="/listings/{{ ticket.listing.id }}" class="text-primary hover:underline">{{ ticket.listing.title }}</a>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ ticket.quantity }}</td>
+                        <td class="px-6 py-4">
+                            {% if ticket.listing.status.value == 'drawn' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Drawn</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if ticket.listing.status.value == 'drawn' and ticket.listing.winner_id == user.id %}
+                            <span class="text-green-600 font-semibold">Winner!</span>
+                            {% elif ticket.listing.status.value == 'drawn' %}
+                            <span class="text-gray-500">Did not win</span>
+                            {% else %}
+                            <span class="text-gray-500">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not active_tickets and not past_tickets %}
+    <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+        <p class="text-gray-500 text-lg">You haven't purchased any tickets yet.</p>
+        <a href="/listings" class="mt-4 inline-block bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+            Browse Raffles
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

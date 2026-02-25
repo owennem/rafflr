@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Create Listing - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Create New Raffle</h1>
+
+    {% if error %}
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="/listings/create" method="POST" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+        {{ csrf_input() }}
+        <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">Title *</label>
+            <input type="text" id="title" name="title" required
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+        </div>
+
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea id="description" name="description" rows="4"
+                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+        </div>
+
+        <div>
+            <label for="image_url" class="block text-sm font-medium text-gray-700">Image URL</label>
+            <input type="url" id="image_url" name="image_url" placeholder="https://..."
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="ticket_price" class="block text-sm font-medium text-gray-700">Ticket Price ($) *</label>
+                <input type="number" id="ticket_price" name="ticket_price" required min="0.01" step="0.01"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+            </div>
+            <div>
+                <label for="max_tickets" class="block text-sm font-medium text-gray-700">Max Tickets *</label>
+                <input type="number" id="max_tickets" name="max_tickets" required min="1"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+            </div>
+        </div>
+
+        <div>
+            <label for="draw_type" class="block text-sm font-medium text-gray-700">Draw Type *</label>
+            <select id="draw_type" name="draw_type" required onchange="updateDrawFields()"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                <option value="ticket_limit">Ticket Limit (auto-draw when limit reached)</option>
+                <option value="deadline">Deadline (auto-draw at specific time)</option>
+                <option value="both">Both (whichever comes first)</option>
+            </select>
+        </div>
+
+        <div id="ticket_limit_field">
+            <label for="ticket_limit" class="block text-sm font-medium text-gray-700">Ticket Limit for Auto-Draw</label>
+            <input type="number" id="ticket_limit" name="ticket_limit" min="1"
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+            <p class="mt-1 text-sm text-gray-500">Draw will happen automatically when this many tickets are sold</p>
+        </div>
+
+        <div id="deadline_field" class="hidden">
+            <label for="deadline" class="block text-sm font-medium text-gray-700">Deadline</label>
+            <input type="datetime-local" id="deadline" name="deadline"
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+            <p class="mt-1 text-sm text-gray-500">Draw will happen automatically at this time</p>
+        </div>
+
+        <div class="pt-4">
+            <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-md font-semibold hover:bg-primary-dark">
+                Create Raffle
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateDrawFields() {
+    const drawType = document.getElementById('draw_type').value;
+    const ticketLimitField = document.getElementById('ticket_limit_field');
+    const deadlineField = document.getElementById('deadline_field');
+
+    if (drawType === 'ticket_limit') {
+        ticketLimitField.classList.remove('hidden');
+        deadlineField.classList.add('hidden');
+    } else if (drawType === 'deadline') {
+        ticketLimitField.classList.add('hidden');
+        deadlineField.classList.remove('hidden');
+    } else {
+        ticketLimitField.classList.remove('hidden');
+        deadlineField.classList.remove('hidden');
+    }
+}
+</script>
+{% endblock %}

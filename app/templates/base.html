@@ -1,0 +1,70 @@
+{# CSRF token macro - include in all forms #}
+{% macro csrf_input() %}
+<input type="hidden" name="csrf_token" value="{{ get_csrf_token(request) }}">
+{% endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rafflr{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        'primary-dark': '#4338CA',
+                    }
+                }
+            }
+        }
+    </script>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-primary">Rafflr</a>
+                    <div class="hidden md:flex ml-10 space-x-8">
+                        <a href="/listings" class="text-gray-600 hover:text-gray-900">Browse</a>
+                        {% if user %}
+                        <a href="/listings/create" class="text-gray-600 hover:text-gray-900">Create Listing</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if user %}
+                    <a href="/dashboard" class="text-gray-600 hover:text-gray-900">Dashboard</a>
+                    {% if user.is_admin %}
+                    <a href="/admin" class="text-gray-600 hover:text-gray-900">Admin</a>
+                    {% endif %}
+                    <span class="text-gray-600">{{ user.username }}</span>
+                    <a href="/auth/logout" class="bg-gray-100 px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200">Logout</a>
+                    {% else %}
+                    <a href="/auth/login" class="text-gray-600 hover:text-gray-900">Login</a>
+                    <a href="/auth/register" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-white border-t mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-gray-500 text-sm">&copy; 2024 Rafflr. All rights reserved.</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

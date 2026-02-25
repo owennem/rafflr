@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}My Listings - Rafflr{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">My Listings</h1>
+        <a href="/listings/create" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark">
+            Create New Listing
+        </a>
+    </div>
+
+    {% if listings %}
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tickets</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for listing in listings %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="/listings/{{ listing.id }}" class="text-primary hover:underline font-medium">{{ listing.title }}</a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ "%.2f"|format(listing.ticket_price) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ listing.tickets_sold }}/{{ listing.max_tickets }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if listing.status.value == 'active' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                        {% elif listing.status.value == 'drawn' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Drawn</span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ listing.created_at.strftime('%b %d, %Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="/listings/{{ listing.id }}" class="text-primary hover:underline">View</a>
+                        {% if listing.status.value == 'active' %}
+                        <a href="/listings/{{ listing.id }}/edit" class="ml-4 text-gray-600 hover:underline">Edit</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+        <p class="text-gray-500 text-lg">You haven't created any listings yet.</p>
+        <a href="/listings/create" class="mt-4 inline-block bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+            Create Your First Listing
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
