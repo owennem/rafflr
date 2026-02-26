@@ -121,7 +121,7 @@ async def login(
             status_code=400
         )
 
-    access_token = AuthService.create_access_token(data={"sub": user.id})
+    access_token = AuthService.create_access_token(data={"sub": str(user.id)})
     redirect = RedirectResponse(url="/dashboard", status_code=302)
     set_auth_cookie(redirect, access_token, request)
     return redirect

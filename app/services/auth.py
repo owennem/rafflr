@@ -46,11 +46,13 @@ class AuthService:
     def decode_token(token: str) -> Optional[TokenData]:
         try:
             payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-            user_id: int = payload.get("sub")
-            if user_id is None:
+            user_id_str = payload.get("sub")
+            if user_id_str is None:
                 return None
+            # Convert string back to int
+            user_id = int(user_id_str) if isinstance(user_id_str, str) else user_id_str
             return TokenData(user_id=user_id)
-        except JWTError:
+        except (JWTError, ValueError):
             return None
 
     @staticmethod
@@ -155,16 +157,22 @@ def get_current_user(
     return user
 
 
+class AuthenticationRequired(HTTPException):
+    """Custom exception for redirecting to login."""
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+
+
 def get_current_user_required(
     request: Request,
     db: Session = Depends(get_db)
 ) -> User:
     user = get_current_user(request, db)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
+        raise AuthenticationRequired()
     return user
 
 

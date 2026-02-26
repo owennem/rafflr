@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from app.database import init_db, get_db
 from app.config import get_settings
 from app.services.scheduler import init_scheduler, shutdown_scheduler
-from app.services.auth import get_current_user
+from app.services.auth import get_current_user, AuthenticationRequired
 from app.middleware.security import setup_security_middleware
 from app.routers import (
     auth_router,
@@ -87,6 +87,12 @@ async def home(
             "stripe_key": settings.stripe_publishable_key
         }
     )
+
+
+@app.exception_handler(AuthenticationRequired)
+async def auth_required_handler(request: Request, exc):
+    """Redirect to login page when authentication is required."""
+    return RedirectResponse(url="/auth/login", status_code=302)
 
 
 @app.exception_handler(404)
