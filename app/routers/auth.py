@@ -58,8 +58,17 @@ async def register(
             status_code=400
         )
 
-    user_data = UserCreate(email=email, username=username, password=password)
-    user = AuthService.create_user(db, user_data)
+    try:
+        user_data = UserCreate(email=email, username=username, password=password)
+        user = AuthService.create_user(db, user_data)
+    except Exception as e:
+        import logging
+        logging.error(f"Registration error: {e}")
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {"request": request, "error": "An error occurred during registration. Please try again."},
+            status_code=500
+        )
 
     background_tasks.add_task(
         EmailService.send_verification_email,
