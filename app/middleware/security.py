@@ -94,13 +94,19 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
 
+        # Detect if running over HTTPS (production)
+        is_secure = (
+            request.url.scheme == "https" or
+            request.headers.get("x-forwarded-proto") == "https"
+        )
+
         # Set CSRF cookie
         response.set_cookie(
             key=self.CSRF_COOKIE_NAME,
             value=csrf_token,
             httponly=False,  # JavaScript needs to read this for AJAX
             samesite="lax",
-            secure=False,  # Set to True in production with HTTPS
+            secure=is_secure,  # True in production with HTTPS
             max_age=3600  # 1 hour
         )
 

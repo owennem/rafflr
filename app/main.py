@@ -50,7 +50,13 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Setup security middleware (CSRF, security headers)
-setup_security_middleware(app, allowed_hosts=["localhost", "127.0.0.1"])
+setup_security_middleware(app, allowed_hosts=[
+    "localhost",
+    "127.0.0.1",
+    "rafflr.shop",
+    "www.rafflr.shop",
+    ".railway.app"  # Allows any Railway subdomain
+])
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

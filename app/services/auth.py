@@ -174,13 +174,20 @@ def get_current_admin(
     return current_user
 
 
-def set_auth_cookie(response: Response, token: str):
+def set_auth_cookie(response: Response, token: str, request: Request):
+    # Detect if running over HTTPS (production)
+    is_secure = (
+        request.url.scheme == "https" or
+        request.headers.get("x-forwarded-proto") == "https"
+    )
+
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
         max_age=settings.access_token_expire_minutes * 60,
-        samesite="lax"
+        samesite="lax",
+        secure=is_secure  # True in production with HTTPS
     )
 
 
