@@ -3,22 +3,28 @@
 {% block title %}Rafflr - Win Amazing Products{% endblock %}
 
 {% block content %}
-<div class="bg-gradient-to-r from-primary to-purple-600 text-white">
+<div class="bg-gradient-to-br from-primary via-primary-dark to-accent">
     <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
         <div class="text-center">
-            <h1 class="text-4xl font-extrabold sm:text-5xl md:text-6xl">
+            <div class="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6">
+                <svg class="w-4 h-4 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-white/90 text-sm font-medium">New raffles added daily</span>
+            </div>
+            <h1 class="text-4xl font-extrabold sm:text-5xl md:text-6xl text-white">
                 Win Amazing Products
             </h1>
-            <p class="mt-6 max-w-2xl mx-auto text-xl text-gray-100">
+            <p class="mt-6 max-w-2xl mx-auto text-xl text-white/90">
                 Purchase raffle tickets for a chance to win products at a fraction of their retail price.
             </p>
-            <div class="mt-10 flex justify-center gap-4">
-                <a href="/listings" class="bg-white text-primary px-8 py-3 rounded-md font-semibold hover:bg-gray-100">
+            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                <a href="/listings" class="bg-white text-primary px-8 py-3 rounded-xl font-bold hover:bg-cream shadow-soft-lg hover:shadow-xl transition-all">
                     Browse Raffles
                 </a>
                 {% if not user %}
-                <a href="/auth/register" class="border-2 border-white text-white px-8 py-3 rounded-md font-semibold hover:bg-white hover:text-primary">
-                    Sign Up
+                <a href="/auth/register" class="border-2 border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-white hover:text-primary transition-all">
+                    Get Started Free
                 </a>
                 {% endif %}
             </div>
@@ -26,67 +32,113 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <h2 class="text-2xl font-bold text-gray-900 mb-8">Featured Raffles</h2>
+<div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-10">
+        <h2 class="text-3xl font-bold text-warm-gray-800">Featured Raffles</h2>
+        <p class="mt-2 text-warm-gray-500">Discover exciting products waiting for a lucky winner</p>
+    </div>
 
     {% if featured_listings %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {% for listing in featured_listings %}
-        <a href="/listings/{{ listing.id }}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+        <a href="/listings/{{ listing.id }}" class="bg-warm-white rounded-2xl shadow-soft overflow-hidden hover:shadow-soft-lg transition-all hover:-translate-y-1 group">
             {% if listing.image_url %}
-            <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-48 object-cover">
+            <div class="relative overflow-hidden">
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300">
+            </div>
             {% else %}
-            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-400">No image</span>
+            <div class="w-full h-52 bg-warm-gray-100 flex items-center justify-center">
+                <svg class="w-12 h-12 text-warm-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
             </div>
             {% endif %}
-            <div class="p-4">
-                <h3 class="font-semibold text-lg text-gray-900">{{ listing.title }}</h3>
-                <div class="mt-2 flex justify-between items-center">
-                    <span class="text-primary font-bold">${{ "%.2f"|format(listing.ticket_price) }} / ticket</span>
-                    <span class="text-sm text-gray-500">{{ listing.tickets_sold }} / {{ listing.max_tickets }} sold</span>
+            <div class="p-5">
+                <h3 class="font-bold text-lg text-warm-gray-800 group-hover:text-primary transition-colors">{{ listing.title }}</h3>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-primary font-bold text-lg">${{ "%.2f"|format(listing.ticket_price) }}</span>
+                    <span class="text-sm text-warm-gray-500 bg-warm-gray-100 px-2 py-1 rounded-lg">{{ listing.tickets_sold }}/{{ listing.max_tickets }} sold</span>
                 </div>
-                <div class="mt-2">
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-primary rounded-full h-2" style="width: {{ (listing.tickets_sold / listing.max_tickets * 100)|int }}%"></div>
+                <div class="mt-3">
+                    <div class="w-full bg-warm-gray-100 rounded-full h-2.5">
+                        <div class="bg-gradient-to-r from-primary to-accent rounded-full h-2.5 transition-all" style="width: {{ (listing.tickets_sold / listing.max_tickets * 100)|int }}%"></div>
                     </div>
                 </div>
                 {% if listing.deadline %}
-                <p class="mt-2 text-sm text-gray-500">Ends: {{ listing.deadline.strftime('%b %d, %Y %I:%M %p') }}</p>
+                <div class="mt-3 flex items-center text-sm text-warm-gray-500">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Ends {{ listing.deadline.strftime('%b %d, %Y') }}
+                </div>
                 {% endif %}
             </div>
         </a>
         {% endfor %}
     </div>
     {% else %}
-    <div class="text-center py-12">
-        <p class="text-gray-500">No active raffles at the moment.</p>
+    <div class="text-center py-16 bg-warm-white rounded-2xl shadow-soft">
+        <svg class="w-16 h-16 text-warm-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+        </svg>
+        <p class="text-warm-gray-500 text-lg">No active raffles at the moment.</p>
         {% if user %}
-        <a href="/listings/create" class="mt-4 inline-block text-primary hover:underline">Create the first one!</a>
+        <a href="/listings/create" class="mt-4 inline-flex items-center text-primary hover:text-primary-dark font-semibold">
+            Create the first one
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
         {% endif %}
     </div>
     {% endif %}
 </div>
 
-<div class="bg-gray-100 py-16">
+<div class="bg-warm-white py-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-12">How It Works</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center mx-auto text-2xl font-bold">1</div>
-                <h3 class="mt-4 text-lg font-semibold">Browse Raffles</h3>
-                <p class="mt-2 text-gray-600">Find products you'd love to win at amazing prices.</p>
+        <div class="text-center mb-14">
+            <h2 class="text-3xl font-bold text-warm-gray-800">How It Works</h2>
+            <p class="mt-2 text-warm-gray-500">Three simple steps to start winning</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+            <div class="relative bg-cream rounded-2xl p-8 text-center shadow-soft hover:shadow-soft-lg transition-shadow">
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold shadow-soft">1</div>
+                <div class="w-16 h-16 bg-primary-light rounded-2xl flex items-center justify-center mx-auto mb-5">
+                    <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-warm-gray-800 mb-2">Discover</h3>
+                <p class="text-warm-gray-500 leading-relaxed">Browse our curated selection of exciting products and find something you'd love to win.</p>
             </div>
-            <div class="text-center">
-                <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center mx-auto text-2xl font-bold">2</div>
-                <h3 class="mt-4 text-lg font-semibold">Buy Tickets</h3>
-                <p class="mt-2 text-gray-600">Purchase raffle tickets. More tickets = higher chance to win!</p>
+            <div class="relative bg-cream rounded-2xl p-8 text-center shadow-soft hover:shadow-soft-lg transition-shadow">
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold shadow-soft">2</div>
+                <div class="w-16 h-16 bg-secondary/20 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                    <svg class="w-8 h-8 text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-warm-gray-800 mb-2">Get Tickets</h3>
+                <p class="text-warm-gray-500 leading-relaxed">Purchase raffle tickets at a fraction of the product cost. More tickets means better odds!</p>
             </div>
-            <div class="text-center">
-                <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center mx-auto text-2xl font-bold">3</div>
-                <h3 class="mt-4 text-lg font-semibold">Win!</h3>
-                <p class="mt-2 text-gray-600">Winners are drawn automatically when conditions are met.</p>
+            <div class="relative bg-cream rounded-2xl p-8 text-center shadow-soft hover:shadow-soft-lg transition-shadow">
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold shadow-soft">3</div>
+                <div class="w-16 h-16 bg-accent/30 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                    <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-warm-gray-800 mb-2">Win Big</h3>
+                <p class="text-warm-gray-500 leading-relaxed">Winners are drawn automatically and fairly. You could be next!</p>
             </div>
+        </div>
+        <div class="text-center mt-12">
+            <a href="/listings" class="inline-flex items-center bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-dark shadow-soft hover:shadow-soft-lg transition-all">
+                Start Exploring
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </a>
         </div>
     </div>
 </div>
