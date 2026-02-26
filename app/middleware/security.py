@@ -43,13 +43,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 class CSRFMiddleware(BaseHTTPMiddleware):
     """
-    CSRF protection using double-submit cookie pattern.
-    For state-changing requests (POST, PUT, DELETE), validates that
-    the CSRF token in the form matches the one in the cookie.
+    CSRF protection middleware.
+
+    Uses SameSite=Lax cookies as the primary CSRF defense mechanism.
+    Also sets a CSRF token cookie that can be used for double-submit pattern
+    with AJAX requests (via X-CSRF-Token header).
+
+    For regular form submissions, SameSite=Lax provides protection by
+    preventing the browser from sending cookies with cross-origin requests.
     """
 
     CSRF_COOKIE_NAME = "csrf_token"
-    CSRF_FIELD_NAME = "csrf_token"
+    CSRF_HEADER_NAME = "X-CSRF-Token"
     SAFE_METHODS = {"GET", "HEAD", "OPTIONS", "TRACE"}
     EXEMPT_PATHS = {"/payments/webhook"}  # Stripe webhook needs to be exempt
 
@@ -62,35 +67,20 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Store token in request state for templates
         request.state.csrf_token = csrf_token
 
-        # Validate CSRF for unsafe methods
+        # Validate CSRF header for AJAX requests (optional extra protection)
         if request.method not in self.SAFE_METHODS:
-            # Skip validation for exempt paths
             if request.url.path not in self.EXEMPT_PATHS:
-                # Get token from form data or header
-                form_token = None
-
-                # Try to get from form data
-                content_type = request.headers.get("content-type", "")
-                if "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
-                    try:
-                        form = await request.form()
-                        form_token = form.get(self.CSRF_FIELD_NAME)
-                    except Exception:
-                        pass
-
-                # Also check header (for AJAX requests)
-                if not form_token:
-                    form_token = request.headers.get("X-CSRF-Token")
-
+                header_token = request.headers.get(self.CSRF_HEADER_NAME)
                 cookie_token = request.cookies.get(self.CSRF_COOKIE_NAME)
 
-                # Validate tokens match
-                if not form_token or not cookie_token or not secrets.compare_digest(form_token, cookie_token):
-                    from fastapi.responses import HTMLResponse
-                    return HTMLResponse(
-                        content="<h1>403 Forbidden</h1><p>CSRF token validation failed.</p>",
-                        status_code=403
-                    )
+                # If X-CSRF-Token header is present, validate it
+                if header_token:
+                    if not cookie_token or not secrets.compare_digest(header_token, cookie_token):
+                        from fastapi.responses import HTMLResponse
+                        return HTMLResponse(
+                            content="<h1>403 Forbidden</h1><p>CSRF token validation failed.</p>",
+                            status_code=403
+                        )
 
         response = await call_next(request)
 

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Form, Query, BackgroundTasks
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Optional
@@ -13,9 +12,9 @@ from app.services.scheduler import schedule_raffle_draw, cancel_scheduled_draw
 from app.models.user import User
 from app.models.listing import Listing, ListingStatus, DrawType
 from app.models.ticket import Ticket
+from app.templates_config import templates
 
 router = APIRouter(prefix="/listings", tags=["listings"])
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("", response_class=HTMLResponse)

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Form, BackgroundTasks
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -12,9 +11,9 @@ from app.services.auth import (
 from app.services.email import EmailService
 from app.schemas.user import UserCreate
 from app.models.user import User
+from app.templates_config import templates
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-templates = Jinja2Templates(directory="app/templates")
 limiter = Limiter(key_func=get_remote_address)
 
 

@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -23,6 +22,7 @@ from app.routers import (
 )
 from app.models.listing import Listing, ListingStatus
 from app.models.user import User
+from app.templates_config import templates
 
 settings = get_settings()
 
@@ -59,25 +59,6 @@ setup_security_middleware(app, allowed_hosts=[
 ])
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
-templates = Jinja2Templates(directory="app/templates")
-
-
-# Add CSRF token helper to Jinja2 templates
-def get_csrf_token(request: Request) -> str:
-    """Get CSRF token from request state."""
-    return getattr(request.state, "csrf_token", "")
-
-
-def csrf_input(request: Request):
-    """Return hidden input field with CSRF token."""
-    from markupsafe import Markup
-    token = getattr(request.state, "csrf_token", "")
-    return Markup(f'<input type="hidden" name="csrf_token" value="{token}">')
-
-
-templates.env.globals["get_csrf_token"] = get_csrf_token
-templates.env.globals["csrf_input"] = csrf_input
 
 app.include_router(auth_router)
 app.include_router(users_router)
