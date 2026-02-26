@@ -59,7 +59,7 @@
                         <a href="/listings/{{ listing.id }}" class="text-primary hover:underline">View</a>
                         {% if listing.status.value == 'active' %}
                         <form action="/listings/{{ listing.id }}/cancel" method="POST" class="inline ml-4">
-                            {{ csrf_input() }}
+                            {{ csrf_input(request) }}
                             <button type="submit" class="text-red-600 hover:underline"
                                     onclick="return confirm('Cancel this listing?')">Cancel</button>
                         </form>

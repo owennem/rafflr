@@ -49,13 +49,13 @@
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         {% if not u.is_verified %}
                         <form action="/admin/users/{{ u.id }}/verify" method="POST" class="inline">
-                            {{ csrf_input() }}
+                            {{ csrf_input(request) }}
                             <button type="submit" class="text-green-600 hover:underline">Verify</button>
                         </form>
                         {% endif %}
                         {% if u.id != user.id %}
                         <form action="/admin/users/{{ u.id }}/toggle-admin" method="POST" class="inline">
-                            {{ csrf_input() }}
+                            {{ csrf_input(request) }}
                             <button type="submit" class="text-purple-600 hover:underline">
                                 {% if u.is_admin %}Remove Admin{% else %}Make Admin{% endif %}
                             </button>

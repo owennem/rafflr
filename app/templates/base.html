@@ -1,8 +1,3 @@
-{# CSRF token macro - include in all forms #}
-{% macro csrf_input() %}
-<input type="hidden" name="csrf_token" value="{{ get_csrf_token(request) }}">
-{% endmacro %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>

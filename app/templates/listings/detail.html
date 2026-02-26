@@ -79,7 +79,7 @@
                         {% endif %}
 
                         <form action="/tickets/purchase" method="POST" class="flex gap-4">
-                            {{ csrf_input() }}
+                            {{ csrf_input(request) }}
                             <input type="hidden" name="listing_id" value="{{ listing.id }}">
                             <div class="flex-grow">
                                 <label for="quantity" class="block text-sm font-medium text-gray-700">Tickets</label>
@@ -109,7 +109,7 @@
                         </a>
                         {% if listing.tickets_sold > 0 %}
                         <form action="/listings/{{ listing.id }}/draw" method="POST">
-                            {{ csrf_input() }}
+                            {{ csrf_input(request) }}
                             <button type="submit" class="w-full bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
                                     onclick="return confirm('Are you sure you want to draw the raffle now?')">
                                 Draw Winner Now
@@ -117,7 +117,7 @@
                         </form>
                         {% endif %}
                         <form action="/listings/{{ listing.id }}/cancel" method="POST">
-                            {{ csrf_input() }}
+                            {{ csrf_input(request) }}
                             <button type="submit" class="w-full bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700"
                                     onclick="return confirm('Are you sure you want to cancel this raffle?')">
                                 Cancel Raffle

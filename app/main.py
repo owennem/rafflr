@@ -69,7 +69,15 @@ def get_csrf_token(request: Request) -> str:
     return getattr(request.state, "csrf_token", "")
 
 
+def csrf_input(request: Request):
+    """Return hidden input field with CSRF token."""
+    from markupsafe import Markup
+    token = getattr(request.state, "csrf_token", "")
+    return Markup(f'<input type="hidden" name="csrf_token" value="{token}">')
+
+
 templates.env.globals["get_csrf_token"] = get_csrf_token
+templates.env.globals["csrf_input"] = csrf_input
 
 app.include_router(auth_router)
 app.include_router(users_router)
