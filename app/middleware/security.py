@@ -3,6 +3,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import secrets
 import hashlib
+from jose import jwt, JWTError
+from app.config import get_settings
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -103,6 +105,36 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class UserExtractionMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware to extract user ID from JWT token and set it on request.state.
+    This allows rate limiting to be user-aware.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        # Initialize user_id as None
+        request.state.user_id = None
+
+        # Try to extract user ID from JWT cookie
+        token = request.cookies.get("access_token")
+        if token:
+            try:
+                settings = get_settings()
+                payload = jwt.decode(
+                    token,
+                    settings.secret_key,
+                    algorithms=[settings.algorithm]
+                )
+                user_id = payload.get("sub")
+                if user_id:
+                    request.state.user_id = int(user_id)
+            except (JWTError, ValueError):
+                # Invalid token, user_id remains None
+                pass
+
+        return await call_next(request)
+
+
 def setup_security_middleware(app: FastAPI, allowed_hosts: list[str] = None):
     """Configure all security middleware for the application."""
 
@@ -111,6 +143,9 @@ def setup_security_middleware(app: FastAPI, allowed_hosts: list[str] = None):
 
     # Add CSRF protection
     app.add_middleware(CSRFMiddleware)
+
+    # Add user extraction (for rate limiting)
+    app.add_middleware(UserExtractionMiddleware)
 
     # Add trusted host validation (prevents host header attacks)
     if allowed_hosts:

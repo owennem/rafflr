@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from slowapi import Limiter
-from slowapi.util import get_remote_address
+from pydantic import ValidationError
 
 from app.database import get_db
 from app.services.auth import (
@@ -12,9 +12,17 @@ from app.services.email import EmailService
 from app.schemas.user import UserCreate
 from app.models.user import User
 from app.templates_config import templates
+from app.utils.validation import (
+    validate_username,
+    validate_password,
+    MAX_USERNAME_LENGTH,
+    MAX_EMAIL_LENGTH,
+    MAX_PASSWORD_LENGTH,
+)
+from app.utils.rate_limit import get_rate_limit_key
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_rate_limit_key)
 
 
 @router.get("/register", response_class=HTMLResponse)
@@ -29,11 +37,36 @@ async def register_page(request: Request, user: User = Depends(get_current_user)
 async def register(
     request: Request,
     background_tasks: BackgroundTasks,
-    email: str = Form(...),
-    username: str = Form(...),
-    password: str = Form(...),
+    email: str = Form(..., max_length=MAX_EMAIL_LENGTH),
+    username: str = Form(..., max_length=MAX_USERNAME_LENGTH),
+    password: str = Form(..., max_length=MAX_PASSWORD_LENGTH),
     db: Session = Depends(get_db)
 ):
+    # Validate and sanitize inputs
+    email = email.strip().lower()[:MAX_EMAIL_LENGTH]
+    username = username.strip()[:MAX_USERNAME_LENGTH]
+    password = password[:MAX_PASSWORD_LENGTH]
+
+    # Validate username format
+    try:
+        username = validate_username(username)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {"request": request, "error": str(e)},
+            status_code=400
+        )
+
+    # Validate password strength
+    try:
+        validate_password(password)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {"request": request, "error": str(e)},
+            status_code=400
+        )
+
     existing_email = AuthService.get_user_by_email(db, email)
     if existing_email:
         return templates.TemplateResponse(
@@ -50,16 +83,17 @@ async def register(
             status_code=400
         )
 
-    if len(password) < 8:
-        return templates.TemplateResponse(
-            "auth/register.html",
-            {"request": request, "error": "Password must be at least 8 characters"},
-            status_code=400
-        )
-
     try:
         user_data = UserCreate(email=email, username=username, password=password)
         user = AuthService.create_user(db, user_data)
+    except ValidationError as e:
+        # Extract first error message from Pydantic validation
+        error_msg = str(e.errors()[0]["msg"]) if e.errors() else "Invalid input"
+        return templates.TemplateResponse(
+            "auth/register.html",
+            {"request": request, "error": error_msg},
+            status_code=400
+        )
     except Exception as e:
         import logging
         logging.error(f"Registration error: {e}")
@@ -109,10 +143,22 @@ async def login_page(request: Request, user: User = Depends(get_current_user)):
 async def login(
     request: Request,
     response: Response,
-    email: str = Form(...),
-    password: str = Form(...),
+    email: str = Form(..., max_length=MAX_EMAIL_LENGTH),
+    password: str = Form(..., max_length=MAX_PASSWORD_LENGTH),
     db: Session = Depends(get_db)
 ):
+    # Sanitize inputs
+    email = email.strip().lower()[:MAX_EMAIL_LENGTH]
+    password = password[:MAX_PASSWORD_LENGTH]
+
+    # Basic validation
+    if not email or not password:
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Email and password are required"},
+            status_code=400
+        )
+
     user = AuthService.authenticate_user(db, email, password)
     if not user:
         return templates.TemplateResponse(
@@ -170,16 +216,24 @@ async def reset_password_page(request: Request, token: str):
 
 
 @router.post("/reset-password")
+@limiter.limit("5/minute")  # Rate limit password reset attempts
 async def reset_password(
     request: Request,
-    token: str = Form(...),
-    password: str = Form(...),
+    token: str = Form(..., max_length=128),
+    password: str = Form(..., max_length=MAX_PASSWORD_LENGTH),
     db: Session = Depends(get_db)
 ):
-    if len(password) < 8:
+    # Sanitize inputs
+    token = token.strip()[:128]
+    password = password[:MAX_PASSWORD_LENGTH]
+
+    # Validate password strength
+    try:
+        validate_password(password)
+    except ValueError as e:
         return templates.TemplateResponse(
             "auth/reset_password.html",
-            {"request": request, "token": token, "error": "Password must be at least 8 characters"},
+            {"request": request, "token": token, "error": str(e)},
             status_code=400
         )
 

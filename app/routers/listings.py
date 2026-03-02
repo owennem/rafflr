@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Optional
+from slowapi import Limiter
 
 from app.database import get_db
 from app.services.auth import get_current_user, get_current_user_required
@@ -13,25 +14,46 @@ from app.models.user import User
 from app.models.listing import Listing, ListingStatus, DrawType
 from app.models.ticket import Ticket
 from app.templates_config import templates
+from app.utils.validation import (
+    validate_title,
+    validate_description,
+    validate_image_url,
+    validate_price,
+    validate_quantity,
+    validate_search_query,
+    validate_page,
+    MAX_TITLE_LENGTH,
+    MAX_DESCRIPTION_LENGTH,
+    MAX_URL_LENGTH,
+    MAX_SEARCH_LENGTH,
+)
+from app.utils.rate_limit import get_rate_limit_key
 
 router = APIRouter(prefix="/listings", tags=["listings"])
+limiter = Limiter(key_func=get_rate_limit_key)
 
 
 @router.get("", response_class=HTMLResponse)
 async def browse_listings(
     request: Request,
-    search: Optional[str] = None,
-    min_price: Optional[float] = None,
-    max_price: Optional[float] = None,
-    sort: str = "newest",
-    page: int = 1,
+    search: Optional[str] = Query(None, max_length=MAX_SEARCH_LENGTH),
+    min_price: Optional[float] = Query(None, ge=0, le=1000000),
+    max_price: Optional[float] = Query(None, ge=0, le=1000000),
+    sort: str = Query("newest", regex="^(newest|oldest|price_low|price_high|ending_soon)$"),
+    page: int = Query(1, ge=1, le=10000),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # Validate and sanitize search query
+    search = validate_search_query(search) if search else None
+    page = validate_page(page)
+
     query = db.query(Listing).filter(Listing.status == ListingStatus.ACTIVE)
 
     if search:
-        query = query.filter(Listing.title.ilike(f"%{search}%"))
+        # Use parameterized query (SQLAlchemy handles this safely)
+        search_pattern = f"%{search}%"
+        query = query.filter(Listing.title.ilike(search_pattern))
     if min_price is not None:
         query = query.filter(Listing.ticket_price >= min_price)
     if max_price is not None:
@@ -81,11 +103,12 @@ async def create_listing_page(
 
 
 @router.post("/create")
+@limiter.limit("10/minute")  # Max 10 listing creations per minute per IP
 async def create_listing(
     request: Request,
-    title: str = Form(...),
-    description: str = Form(None),
-    image_url: str = Form(None),
+    title: str = Form(..., max_length=MAX_TITLE_LENGTH),
+    description: str = Form(None, max_length=MAX_DESCRIPTION_LENGTH),
+    image_url: str = Form(None, max_length=MAX_URL_LENGTH),
     ticket_price: float = Form(...),
     max_tickets: int = Form(...),
     draw_type: str = Form(...),
@@ -94,16 +117,87 @@ async def create_listing(
     user: User = Depends(get_current_user_required),
     db: Session = Depends(get_db)
 ):
-    draw_type_enum = DrawType(draw_type)
+    # Validate and sanitize inputs
+    try:
+        title = validate_title(title)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/create.html",
+            {"request": request, "user": user, "error": str(e)},
+            status_code=400
+        )
+
+    try:
+        description = validate_description(description)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/create.html",
+            {"request": request, "user": user, "error": str(e)},
+            status_code=400
+        )
+
+    try:
+        image_url = validate_image_url(image_url)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/create.html",
+            {"request": request, "user": user, "error": str(e)},
+            status_code=400
+        )
+
+    try:
+        ticket_price = validate_price(ticket_price)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/create.html",
+            {"request": request, "user": user, "error": str(e)},
+            status_code=400
+        )
+
+    try:
+        max_tickets = validate_quantity(max_tickets, max_quantity=100000)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/create.html",
+            {"request": request, "user": user, "error": str(e)},
+            status_code=400
+        )
+
+    # Validate draw type
+    try:
+        draw_type_enum = DrawType(draw_type)
+    except ValueError:
+        return templates.TemplateResponse(
+            "listings/create.html",
+            {"request": request, "user": user, "error": "Invalid draw type"},
+            status_code=400
+        )
 
     deadline_dt = None
     if deadline:
         try:
             deadline_dt = datetime.fromisoformat(deadline)
+            # Ensure deadline is in the future
+            if deadline_dt <= datetime.now():
+                return templates.TemplateResponse(
+                    "listings/create.html",
+                    {"request": request, "user": user, "error": "Deadline must be in the future"},
+                    status_code=400
+                )
         except ValueError:
             return templates.TemplateResponse(
                 "listings/create.html",
                 {"request": request, "user": user, "error": "Invalid deadline format"},
+                status_code=400
+            )
+
+    if ticket_limit is not None:
+        try:
+            ticket_limit = validate_quantity(ticket_limit, max_quantity=100000)
+        except ValueError as e:
+            return templates.TemplateResponse(
+                "listings/create.html",
+                {"request": request, "user": user, "error": str(e)},
                 status_code=400
             )
 
@@ -200,12 +294,13 @@ async def edit_listing_page(
 
 
 @router.post("/{listing_id}/edit")
+@limiter.limit("20/minute")  # Max 20 edits per minute per IP
 async def edit_listing(
     request: Request,
     listing_id: int,
-    title: str = Form(...),
-    description: str = Form(None),
-    image_url: str = Form(None),
+    title: str = Form(..., max_length=MAX_TITLE_LENGTH),
+    description: str = Form(None, max_length=MAX_DESCRIPTION_LENGTH),
+    image_url: str = Form(None, max_length=MAX_URL_LENGTH),
     user: User = Depends(get_current_user_required),
     db: Session = Depends(get_db)
 ):
@@ -219,6 +314,34 @@ async def edit_listing(
     if listing.status != ListingStatus.ACTIVE:
         return RedirectResponse(url=f"/listings/{listing_id}", status_code=302)
 
+    # Validate and sanitize inputs
+    try:
+        title = validate_title(title)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/edit.html",
+            {"request": request, "user": user, "listing": listing, "error": str(e)},
+            status_code=400
+        )
+
+    try:
+        description = validate_description(description)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/edit.html",
+            {"request": request, "user": user, "listing": listing, "error": str(e)},
+            status_code=400
+        )
+
+    try:
+        image_url = validate_image_url(image_url)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "listings/edit.html",
+            {"request": request, "user": user, "listing": listing, "error": str(e)},
+            status_code=400
+        )
+
     listing.title = title
     listing.description = description
     listing.image_url = image_url
@@ -228,7 +351,9 @@ async def edit_listing(
 
 
 @router.post("/{listing_id}/cancel")
+@limiter.limit("10/minute")  # Max 10 cancellations per minute per IP
 async def cancel_listing(
+    request: Request,
     listing_id: int,
     user: User = Depends(get_current_user_required),
     db: Session = Depends(get_db)
@@ -251,7 +376,9 @@ async def cancel_listing(
 
 
 @router.post("/{listing_id}/draw")
+@limiter.limit("10/minute")  # Max 10 draws per minute per IP
 async def draw_raffle(
+    request: Request,
     listing_id: int,
     background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user_required),

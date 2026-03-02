@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from slowapi import Limiter
 
 from app.database import get_db
 from app.services.auth import get_current_admin
@@ -10,8 +11,11 @@ from app.models.listing import Listing, ListingStatus
 from app.models.ticket import Ticket
 from app.models.transaction import Transaction, TransactionStatus
 from app.templates_config import templates
+from app.utils.validation import validate_search_query, validate_page, MAX_SEARCH_LENGTH
+from app.utils.rate_limit import get_rate_limit_key
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+limiter = Limiter(key_func=get_rate_limit_key)
 
 
 @router.get("", response_class=HTMLResponse)
@@ -53,17 +57,23 @@ async def admin_dashboard(
 @router.get("/users", response_class=HTMLResponse)
 async def admin_users(
     request: Request,
-    page: int = 1,
-    search: str = None,
+    page: int = Query(1, ge=1, le=10000),
+    search: str = Query(None, max_length=MAX_SEARCH_LENGTH),
     user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
+    # Validate and sanitize inputs
+    page = validate_page(page)
+    search = validate_search_query(search) if search else None
+
     query = db.query(User)
 
     if search:
+        # Use parameterized pattern
+        search_pattern = f"%{search}%"
         query = query.filter(
-            (User.username.ilike(f"%{search}%")) |
-            (User.email.ilike(f"%{search}%"))
+            (User.username.ilike(search_pattern)) |
+            (User.email.ilike(search_pattern))
         )
 
     per_page = 20
@@ -85,7 +95,9 @@ async def admin_users(
 
 
 @router.post("/users/{user_id}/toggle-admin")
+@limiter.limit("10/minute")  # Rate limit admin operations
 async def toggle_admin(
+    request: Request,
     user_id: int,
     admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
@@ -104,7 +116,9 @@ async def toggle_admin(
 
 
 @router.post("/users/{user_id}/verify")
+@limiter.limit("20/minute")  # Rate limit admin operations
 async def verify_user(
+    request: Request,
     user_id: int,
     admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
@@ -123,18 +137,26 @@ async def verify_user(
 @router.get("/listings", response_class=HTMLResponse)
 async def admin_listings(
     request: Request,
-    page: int = 1,
-    status: str = None,
-    search: str = None,
+    page: int = Query(1, ge=1, le=10000),
+    status: str = Query(None, regex="^(active|completed|cancelled)?$"),
+    search: str = Query(None, max_length=MAX_SEARCH_LENGTH),
     user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
+    # Validate and sanitize inputs
+    page = validate_page(page)
+    search = validate_search_query(search) if search else None
+
     query = db.query(Listing)
 
     if status:
-        query = query.filter(Listing.status == ListingStatus(status))
+        try:
+            query = query.filter(Listing.status == ListingStatus(status))
+        except ValueError:
+            pass  # Invalid status, ignore filter
     if search:
-        query = query.filter(Listing.title.ilike(f"%{search}%"))
+        search_pattern = f"%{search}%"
+        query = query.filter(Listing.title.ilike(search_pattern))
 
     per_page = 20
     total = query.count()
@@ -158,15 +180,21 @@ async def admin_listings(
 @router.get("/transactions", response_class=HTMLResponse)
 async def admin_transactions(
     request: Request,
-    page: int = 1,
-    status: str = None,
+    page: int = Query(1, ge=1, le=10000),
+    status: str = Query(None, regex="^(pending|completed|refunded)?$"),
     user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
+    # Validate page
+    page = validate_page(page)
+
     query = db.query(Transaction)
 
     if status:
-        query = query.filter(Transaction.status == TransactionStatus(status))
+        try:
+            query = query.filter(Transaction.status == TransactionStatus(status))
+        except ValueError:
+            pass  # Invalid status, ignore filter
 
     per_page = 20
     total = query.count()

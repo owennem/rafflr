@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.database import init_db, get_db
@@ -23,11 +22,12 @@ from app.routers import (
 from app.models.listing import Listing, ListingStatus
 from app.models.user import User
 from app.templates_config import templates
+from app.utils.rate_limit import get_rate_limit_key
 
 settings = get_settings()
 
-# Rate limiter setup
-limiter = Limiter(key_func=get_remote_address)
+# Rate limiter setup - uses both IP and user ID when available
+limiter = Limiter(key_func=get_rate_limit_key)
 
 
 @asynccontextmanager
