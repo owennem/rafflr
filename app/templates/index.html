@@ -3,34 +3,134 @@
 {% block title %}Rafflr - Win Amazing Products{% endblock %}
 
 {% block content %}
-<div class="bg-gradient-to-br from-primary via-primary-dark to-accent">
-    <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
-        <div class="text-center">
+<!-- Hero Section with Image Slideshow -->
+<div class="relative h-[600px] sm:h-[700px] overflow-hidden">
+    <!-- Image Slideshow Container -->
+    <div class="hero-slideshow absolute inset-0">
+        <!-- Slide 1: Luxury Car -->
+        <div class="hero-slide absolute inset-0 opacity-100 transition-opacity duration-1000 ease-in-out">
+            <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80"
+                 alt="Luxury sports car"
+                 class="w-full h-full object-cover">
+        </div>
+        <!-- Slide 2: Premium Sneakers -->
+        <div class="hero-slide absolute inset-0 opacity-0 transition-opacity duration-1000 ease-in-out">
+            <img src="https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=1920&q=80"
+                 alt="Premium sneakers"
+                 class="w-full h-full object-cover">
+        </div>
+        <!-- Slide 3: Latest iPhone -->
+        <div class="hero-slide absolute inset-0 opacity-0 transition-opacity duration-1000 ease-in-out">
+            <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1920&q=80"
+                 alt="Latest smartphone"
+                 class="w-full h-full object-cover">
+        </div>
+        <!-- Slide 4: Luxury Watch -->
+        <div class="hero-slide absolute inset-0 opacity-0 transition-opacity duration-1000 ease-in-out">
+            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1920&q=80"
+                 alt="Luxury watch"
+                 class="w-full h-full object-cover">
+        </div>
+        <!-- Slide 5: Gaming Console / Tech -->
+        <div class="hero-slide absolute inset-0 opacity-0 transition-opacity duration-1000 ease-in-out">
+            <img src="https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=1920&q=80"
+                 alt="Gaming setup"
+                 class="w-full h-full object-cover">
+        </div>
+    </div>
+
+    <!-- Dark Overlay for Text Readability -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70"></div>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 h-full flex items-center justify-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div class="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6">
                 <svg class="w-4 h-4 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span class="text-white/90 text-sm font-medium">New raffles added daily</span>
             </div>
-            <h1 class="text-4xl font-extrabold sm:text-5xl md:text-6xl text-white">
-                Win Amazing Products
+            <h1 class="text-4xl font-extrabold sm:text-5xl md:text-6xl lg:text-7xl text-white drop-shadow-lg">
+                Win Amazing Prizes
             </h1>
-            <p class="mt-6 max-w-2xl mx-auto text-xl text-white/90">
+            <p class="mt-6 max-w-2xl mx-auto text-xl sm:text-2xl text-white/90 drop-shadow-md">
                 Purchase raffle tickets for a chance to win products at a fraction of their retail price.
             </p>
             <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-                <a href="/listings" class="bg-white text-primary px-8 py-3 rounded-xl font-bold hover:bg-cream shadow-soft-lg hover:shadow-xl transition-all">
+                <a href="/listings" class="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg hover:bg-cream shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300">
                     Browse Raffles
                 </a>
                 {% if not user %}
-                <a href="/auth/register" class="border-2 border-white text-white px-8 py-3 rounded-xl font-bold hover:bg-white hover:text-primary transition-all">
+                <a href="/auth/register" class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary backdrop-blur-sm transition-all duration-300">
                     Get Started Free
                 </a>
                 {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- Slide Indicators -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+        <button class="slide-indicator w-3 h-3 rounded-full bg-white/80 transition-all duration-300" data-slide="0"></button>
+        <button class="slide-indicator w-3 h-3 rounded-full bg-white/40 hover:bg-white/60 transition-all duration-300" data-slide="1"></button>
+        <button class="slide-indicator w-3 h-3 rounded-full bg-white/40 hover:bg-white/60 transition-all duration-300" data-slide="2"></button>
+        <button class="slide-indicator w-3 h-3 rounded-full bg-white/40 hover:bg-white/60 transition-all duration-300" data-slide="3"></button>
+        <button class="slide-indicator w-3 h-3 rounded-full bg-white/40 hover:bg-white/60 transition-all duration-300" data-slide="4"></button>
+    </div>
 </div>
+
+<!-- Hero Slideshow Script -->
+<script>
+(function() {
+    const slides = document.querySelectorAll('.hero-slide');
+    const indicators = document.querySelectorAll('.slide-indicator');
+    let currentSlide = 0;
+    const slideInterval = 5000; // 5 seconds per slide
+    let autoSlideTimer;
+
+    function showSlide(index) {
+        // Hide all slides
+        slides.forEach((slide, i) => {
+            slide.style.opacity = '0';
+            indicators[i].classList.remove('bg-white/80');
+            indicators[i].classList.add('bg-white/40');
+        });
+
+        // Show target slide
+        slides[index].style.opacity = '1';
+        indicators[index].classList.remove('bg-white/40');
+        indicators[index].classList.add('bg-white/80');
+
+        currentSlide = index;
+    }
+
+    function nextSlide() {
+        const next = (currentSlide + 1) % slides.length;
+        showSlide(next);
+    }
+
+    function startAutoSlide() {
+        autoSlideTimer = setInterval(nextSlide, slideInterval);
+    }
+
+    function resetAutoSlide() {
+        clearInterval(autoSlideTimer);
+        startAutoSlide();
+    }
+
+    // Click handlers for indicators
+    indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => {
+            showSlide(index);
+            resetAutoSlide();
+        });
+    });
+
+    // Start automatic slideshow
+    startAutoSlide();
+})();
+</script>
 
 <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-10">
