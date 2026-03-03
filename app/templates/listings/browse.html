@@ -2,96 +2,286 @@
 
 {% block title %}Browse Raffles - Rafflr{% endblock %}
 
+{% block head %}
+<style>
+    /* Scroll reveal animations */
+    .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .reveal-zoom {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+    .reveal-zoom.revealed {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* Staggered animation delays */
+    .stagger-1 { transition-delay: 0.05s; }
+    .stagger-2 { transition-delay: 0.1s; }
+    .stagger-3 { transition-delay: 0.15s; }
+    .stagger-4 { transition-delay: 0.2s; }
+    .stagger-5 { transition-delay: 0.25s; }
+    .stagger-6 { transition-delay: 0.3s; }
+    .stagger-7 { transition-delay: 0.35s; }
+    .stagger-8 { transition-delay: 0.4s; }
+
+    /* Heart animation */
+    @keyframes heartBurst {
+        0% { transform: scale(1); }
+        25% { transform: scale(1.3); }
+        50% { transform: scale(0.9); }
+        75% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+    @keyframes heartPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    .heart-burst {
+        animation: heartBurst 0.5s ease-out;
+    }
+    .heart-btn:hover .heart-icon {
+        animation: heartPulse 0.8s ease-in-out infinite;
+    }
+    .heart-btn.favorited .heart-icon {
+        fill: #ef4444;
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Browse Raffles</h1>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 reveal">
+        <div>
+            <h1 class="text-3xl font-bold text-warm-gray-800">Browse Raffles</h1>
+            <p class="mt-1 text-warm-gray-500">Find your next win</p>
+        </div>
         {% if user %}
-        <a href="/listings/create" class="mt-4 md:mt-0 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark">
+        <a href="/listings/create" class="mt-4 md:mt-0 inline-flex items-center bg-primary text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-dark shadow-soft hover:shadow-soft-lg transition-all duration-300 group">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
             Create Listing
         </a>
         {% endif %}
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <form action="/listings" method="GET" class="flex flex-wrap gap-4">
-            <div class="flex-grow">
-                <input type="text" name="search" value="{{ search or '' }}" placeholder="Search..."
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+    <!-- Filter Bar -->
+    <div class="bg-warm-white rounded-2xl shadow-soft p-5 mb-8 reveal">
+        <form action="/listings" method="GET" class="flex flex-wrap gap-4 items-end">
+            <div class="flex-grow min-w-[200px]">
+                <label class="block text-sm font-medium text-warm-gray-600 mb-1">Search</label>
+                <input type="text" name="search" value="{{ search or '' }}" placeholder="Search raffles..."
+                       class="w-full px-4 py-2.5 border border-warm-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
             </div>
-            <div>
-                <input type="number" name="min_price" value="{{ min_price or '' }}" placeholder="Min $" step="0.01"
-                       class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+            <div class="w-28">
+                <label class="block text-sm font-medium text-warm-gray-600 mb-1">Min Price</label>
+                <input type="number" name="min_price" value="{{ min_price or '' }}" placeholder="$0" step="0.01"
+                       class="w-full px-4 py-2.5 border border-warm-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
             </div>
-            <div>
-                <input type="number" name="max_price" value="{{ max_price or '' }}" placeholder="Max $" step="0.01"
-                       class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+            <div class="w-28">
+                <label class="block text-sm font-medium text-warm-gray-600 mb-1">Max Price</label>
+                <input type="number" name="max_price" value="{{ max_price or '' }}" placeholder="$999" step="0.01"
+                       class="w-full px-4 py-2.5 border border-warm-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
             </div>
-            <div>
-                <select name="sort" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
-                    <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+            <div class="w-44">
+                <label class="block text-sm font-medium text-warm-gray-600 mb-1">Sort By</label>
+                <select name="sort" class="w-full px-4 py-2.5 border border-warm-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all bg-white">
+                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest First</option>
                     <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
                     <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
                     <option value="ending_soon" {% if sort == 'ending_soon' %}selected{% endif %}>Ending Soon</option>
                 </select>
             </div>
-            <button type="submit" class="bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200">
-                Filter
+            <button type="submit" class="bg-warm-gray-100 text-warm-gray-700 px-6 py-2.5 rounded-xl font-medium hover:bg-warm-gray-200 transition-colors">
+                Apply Filters
             </button>
         </form>
     </div>
 
     {% if listings %}
+    <!-- Listings Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {% for listing in listings %}
-        <a href="/listings/{{ listing.id }}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            {% if listing.image_url %}
-            <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-48 object-cover">
-            {% else %}
-            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-400">No image</span>
-            </div>
+        <div class="reveal-zoom stagger-{{ (loop.index - 1) % 8 + 1 }} bg-warm-white rounded-2xl shadow-soft overflow-hidden hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-2 group relative">
+            <!-- Favorite Button -->
+            {% if user %}
+            <button
+                class="heart-btn absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all duration-300 {% if listing.id in favorite_ids %}favorited{% endif %}"
+                data-listing-id="{{ listing.id }}"
+                onclick="toggleFavorite(event, {{ listing.id }})"
+            >
+                <svg class="heart-icon w-5 h-5 text-warm-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+            </button>
             {% endif %}
-            <div class="p-4">
-                <h3 class="font-semibold text-lg text-gray-900 truncate">{{ listing.title }}</h3>
-                <p class="text-sm text-gray-500 mt-1">by {{ listing.seller.username }}</p>
-                <div class="mt-3 flex justify-between items-center">
-                    <span class="text-primary font-bold">${{ "%.2f"|format(listing.ticket_price) }}</span>
-                    <span class="text-sm text-gray-500">{{ listing.tickets_sold }}/{{ listing.max_tickets }}</span>
+
+            <a href="/listings/{{ listing.id }}" class="block">
+                {% if listing.image_url %}
+                <div class="relative overflow-hidden">
+                    <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-                <div class="mt-2">
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-primary rounded-full h-2" style="width: {{ (listing.tickets_sold / listing.max_tickets * 100)|int }}%"></div>
-                    </div>
+                {% else %}
+                <div class="w-full h-48 bg-warm-gray-100 flex items-center justify-center">
+                    <svg class="w-12 h-12 text-warm-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
                 </div>
-                {% if listing.deadline %}
-                <p class="mt-2 text-xs text-gray-500">Ends: {{ listing.deadline.strftime('%b %d, %H:%M') }}</p>
                 {% endif %}
-            </div>
-        </a>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg text-warm-gray-800 group-hover:text-primary transition-colors truncate">{{ listing.title }}</h3>
+                    <p class="text-sm text-warm-gray-500 mt-1">by {{ listing.seller.username }}</p>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-primary font-bold text-lg">${{ "%.2f"|format(listing.ticket_price) }}</span>
+                        <span class="text-sm text-warm-gray-500 bg-warm-gray-100 px-2 py-1 rounded-lg">{{ listing.tickets_sold }}/{{ listing.max_tickets }}</span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="w-full bg-warm-gray-100 rounded-full h-2 overflow-hidden">
+                            <div class="progress-bar bg-gradient-to-r from-primary to-accent rounded-full h-2 transition-all duration-1000" style="width: 0%" data-width="{{ (listing.tickets_sold / listing.max_tickets * 100)|int }}"></div>
+                        </div>
+                    </div>
+                    {% if listing.deadline %}
+                    <div class="mt-3 flex items-center text-sm text-warm-gray-500">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Ends {{ listing.deadline.strftime('%b %d, %H:%M') }}
+                    </div>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
         {% endfor %}
     </div>
 
+    <!-- Pagination -->
     {% if total_pages > 1 %}
-    <div class="mt-8 flex justify-center gap-2">
+    <div class="mt-10 flex justify-center items-center gap-2 reveal">
         {% if page > 1 %}
-        <a href="?page={{ page - 1 }}&search={{ search or '' }}&sort={{ sort }}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Previous</a>
+        <a href="?page={{ page - 1 }}&search={{ search or '' }}&sort={{ sort }}&min_price={{ min_price or '' }}&max_price={{ max_price or '' }}"
+           class="px-4 py-2 bg-warm-white rounded-xl shadow-soft hover:shadow-soft-lg transition-all font-medium text-warm-gray-700 hover:text-primary">
+            <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Previous
+        </a>
         {% endif %}
-        <span class="px-4 py-2">Page {{ page }} of {{ total_pages }}</span>
+        <span class="px-4 py-2 bg-primary/10 rounded-xl font-medium text-primary">
+            Page {{ page }} of {{ total_pages }}
+        </span>
         {% if page < total_pages %}
-        <a href="?page={{ page + 1 }}&search={{ search or '' }}&sort={{ sort }}" class="px-4 py-2 border rounded-md hover:bg-gray-50">Next</a>
+        <a href="?page={{ page + 1 }}&search={{ search or '' }}&sort={{ sort }}&min_price={{ min_price or '' }}&max_price={{ max_price or '' }}"
+           class="px-4 py-2 bg-warm-white rounded-xl shadow-soft hover:shadow-soft-lg transition-all font-medium text-warm-gray-700 hover:text-primary">
+            Next
+            <svg class="w-5 h-5 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
         {% endif %}
     </div>
     {% endif %}
 
     {% else %}
-    <div class="text-center py-12">
-        <p class="text-gray-500 text-lg">No raffles found.</p>
+    <!-- Empty State -->
+    <div class="reveal-zoom bg-warm-white rounded-2xl shadow-soft p-16 text-center">
+        <div class="w-20 h-20 bg-warm-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-warm-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-warm-gray-800 mb-2">No raffles found</h3>
+        <p class="text-warm-gray-500 mb-6">Try adjusting your filters or search terms</p>
         {% if user %}
-        <a href="/listings/create" class="mt-4 inline-block text-primary hover:underline">Create the first one!</a>
+        <a href="/listings/create" class="inline-flex items-center text-primary hover:text-primary-dark font-semibold group">
+            Create the first one
+            <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
         {% endif %}
     </div>
     {% endif %}
 </div>
+
+<script>
+// Scroll reveal animation
+document.addEventListener('DOMContentLoaded', function() {
+    const revealElements = document.querySelectorAll('.reveal, .reveal-zoom');
+
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -30px 0px'
+    });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // Progress bar animation
+    const progressBars = document.querySelectorAll('.progress-bar');
+    const progressObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const width = entry.target.dataset.width;
+                entry.target.style.width = width + '%';
+            }
+        });
+    }, { threshold: 0.5 });
+
+    progressBars.forEach(bar => progressObserver.observe(bar));
+});
+
+// Favorite toggle
+function toggleFavorite(event, listingId) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const btn = event.currentTarget;
+    const icon = btn.querySelector('.heart-icon');
+    const isFavorited = btn.classList.contains('favorited');
+
+    // Optimistic UI update
+    btn.classList.toggle('favorited');
+    icon.classList.add('heart-burst');
+
+    setTimeout(() => {
+        icon.classList.remove('heart-burst');
+    }, 500);
+
+    // Send request to server
+    fetch(`/favorites/${listingId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            btn.classList.toggle('favorited');
+        }
+    })
+    .catch(() => {
+        btn.classList.toggle('favorited');
+    });
+}
+</script>
 {% endblock %}

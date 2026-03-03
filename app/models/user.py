@@ -23,3 +23,4 @@ class User(Base):
     won_listings = relationship("Listing", back_populates="winner", foreign_keys="Listing.winner_id")
     tickets = relationship("Ticket", back_populates="buyer")
     transactions = relationship("Transaction", back_populates="user")
+    favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")

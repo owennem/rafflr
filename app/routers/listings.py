@@ -13,6 +13,7 @@ from app.services.scheduler import schedule_raffle_draw, cancel_scheduled_draw
 from app.models.user import User
 from app.models.listing import Listing, ListingStatus, DrawType
 from app.models.ticket import Ticket
+from app.models.favorite import Favorite
 from app.templates_config import templates
 from app.utils.validation import (
     validate_title,
@@ -75,12 +76,21 @@ async def browse_listings(
     listings = query.offset((page - 1) * per_page).limit(per_page).all()
     total_pages = (total + per_page - 1) // per_page
 
+    # Get user's favorite listing IDs
+    favorite_ids = set()
+    if user:
+        favorites = db.query(Favorite.listing_id).filter(
+            Favorite.user_id == user.id
+        ).all()
+        favorite_ids = set(f.listing_id for f in favorites)
+
     return templates.TemplateResponse(
         "listings/browse.html",
         {
             "request": request,
             "user": user,
             "listings": listings,
+            "favorite_ids": favorite_ids,
             "search": search,
             "min_price": min_price,
             "max_price": max_price,

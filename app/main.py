@@ -17,10 +17,12 @@ from app.routers import (
     listings_router,
     tickets_router,
     payments_router,
-    admin_router
+    admin_router,
+    favorites_router
 )
 from app.models.listing import Listing, ListingStatus
 from app.models.user import User
+from app.models.favorite import Favorite
 from app.templates_config import templates
 from app.utils.rate_limit import get_rate_limit_key
 
@@ -66,6 +68,7 @@ app.include_router(listings_router)
 app.include_router(tickets_router)
 app.include_router(payments_router)
 app.include_router(admin_router)
+app.include_router(favorites_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -78,12 +81,21 @@ async def home(
         Listing.status == ListingStatus.ACTIVE
     ).order_by(Listing.created_at.desc()).limit(6).all()
 
+    # Get user's favorited listing IDs
+    favorite_ids = set()
+    if user:
+        favorites = db.query(Favorite.listing_id).filter(
+            Favorite.user_id == user.id
+        ).all()
+        favorite_ids = set(f.listing_id for f in favorites)
+
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "user": user,
             "featured_listings": featured_listings,
+            "favorite_ids": favorite_ids,
             "stripe_key": settings.stripe_publishable_key
         }
     )

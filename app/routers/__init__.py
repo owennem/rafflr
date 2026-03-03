@@ -4,6 +4,7 @@ from app.routers.listings import router as listings_router
 from app.routers.tickets import router as tickets_router
 from app.routers.payments import router as payments_router
 from app.routers.admin import router as admin_router
+from app.routers.favorites import router as favorites_router
 
 __all__ = [
     "auth_router",
@@ -11,5 +12,6 @@ __all__ = [
     "listings_router",
     "tickets_router",
     "payments_router",
-    "admin_router"
+    "admin_router",
+    "favorites_router"
 ]

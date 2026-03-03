@@ -39,3 +39,4 @@ class Listing(Base):
     seller = relationship("User", back_populates="listings", foreign_keys=[seller_id])
     winner = relationship("User", back_populates="won_listings", foreign_keys=[winner_id])
     tickets = relationship("Ticket", back_populates="listing")
+    favorited_by = relationship("Favorite", back_populates="listing", cascade="all, delete-orphan")
