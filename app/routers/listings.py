@@ -42,6 +42,7 @@ async def browse_listings(
     max_price: Optional[float] = Query(None, ge=0, le=1000000),
     sort: str = Query("newest", regex="^(newest|oldest|price_low|price_high|ending_soon)$"),
     page: int = Query(1, ge=1, le=10000),
+    login: Optional[str] = Query(None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -84,6 +85,11 @@ async def browse_listings(
         ).all()
         favorite_ids = set(f.listing_id for f in favorites)
 
+    # Check for login success message
+    success_message = None
+    if login == "success":
+        success_message = "Login successful! Welcome back."
+
     return templates.TemplateResponse(
         "listings/browse.html",
         {
@@ -96,7 +102,8 @@ async def browse_listings(
             "max_price": max_price,
             "sort": sort,
             "page": page,
-            "total_pages": total_pages
+            "total_pages": total_pages,
+            "success_message": success_message
         }
     )
 
