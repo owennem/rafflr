@@ -44,6 +44,10 @@
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
+                    letterSpacing: {
+                        'tighter': '-0.05em',
+                        'tight': '-0.025em',
+                    },
                     borderRadius: {
                         'xl': '12px',
                         '2xl': '16px',
@@ -53,6 +57,7 @@
                         'glow': '0 0 20px rgba(99, 102, 241, 0.3)',
                         'glow-lg': '0 0 40px rgba(99, 102, 241, 0.4)',
                         'glow-pink': '0 0 20px rgba(236, 72, 153, 0.3)',
+                        'glow-success': '0 0 20px rgba(16, 185, 129, 0.3)',
                         'dark': '0 4px 20px rgba(0, 0, 0, 0.3)',
                         'dark-lg': '0 10px 40px rgba(0, 0, 0, 0.4)',
                     },
@@ -66,6 +71,14 @@
     </script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
+
+        /* Typography improvements */
+        h1, h2, h3, h4, h5, h6 {
+            letter-spacing: -0.025em;
+            font-weight: 700;
+        }
+        h1 { letter-spacing: -0.05em; }
+        .text-display { letter-spacing: -0.05em; font-weight: 800; }
 
         /* Gradient text */
         .gradient-text {
@@ -107,7 +120,7 @@
             transform: translateY(0);
         }
 
-        /* Success toast animation */
+        /* Toast animations */
         @keyframes slideInDown {
             from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -137,10 +150,118 @@
         .card-hover:hover {
             transform: translateY(-4px);
         }
+
+        /* Button micro-interactions */
+        .btn-press {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-press:active {
+            transform: scale(0.97);
+        }
+        .btn-primary {
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        /* Success checkmark animation */
+        @keyframes checkmark {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .checkmark-animate {
+            stroke-dasharray: 100;
+            animation: checkmark 0.5s ease-out forwards;
+        }
+
+        /* Confetti animation */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: 0;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        /* Focus states for accessibility */
+        *:focus-visible {
+            outline: 2px solid #6366F1;
+            outline-offset: 2px;
+        }
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline: 2px solid #6366F1;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        /* Skip to content link for accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #6366F1;
+            color: white;
+            padding: 8px 16px;
+            z-index: 100;
+            transition: top 0.3s;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Lazy loading placeholder */
+        .lazy-image {
+            background: linear-gradient(90deg, #334155 0%, #475569 50%, #334155 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Form input dark theme */
+        .input-dark {
+            background-color: #1E293B;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            color: #F1F5F9;
+            transition: all 0.2s ease;
+        }
+        .input-dark:focus {
+            border-color: #6366F1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .input-dark::placeholder {
+            color: #64748B;
+        }
+
+        /* Toast container */
+        #toast-container {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
 <body class="bg-dark-900 min-h-screen flex flex-col text-slate-100">
+    <!-- Skip to content link for accessibility -->
+    <a href="#main-content" class="skip-link rounded-br-lg font-semibold">Skip to main content</a>
+
     <!-- Background Pattern -->
     <div class="fixed inset-0 bg-grid-pattern opacity-30 pointer-events-none"></div>
     <div class="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none"></div>
@@ -279,7 +400,7 @@
     </script>
     {% endif %}
 
-    <main class="flex-grow relative z-10">
+    <main id="main-content" class="flex-grow relative z-10" role="main">
         {% block content %}{% endblock %}
     </main>
 
@@ -295,6 +416,102 @@
             </div>
         </div>
     </footer>
+
+    <!-- Toast Container -->
+    <div id="toast-container" role="alert" aria-live="polite"></div>
+
+    <!-- Global Scripts -->
+    <script>
+        // Toast notification system
+        function showToast(message, type = 'success', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const colors = {
+                success: 'bg-success',
+                error: 'bg-error',
+                warning: 'bg-warning',
+                info: 'bg-primary'
+            };
+
+            const icons = {
+                success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+                error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+                warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>',
+                info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+            };
+
+            toast.className = `toast-animate ${colors[type]} text-white px-6 py-3 rounded-xl shadow-dark-lg flex items-center space-x-3`;
+            toast.innerHTML = `
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${icons[type]}
+                </svg>
+                <span class="font-medium">${message}</span>
+                <button onclick="this.parentElement.remove()" class="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors" aria-label="Close notification">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, duration + 400);
+        }
+
+        // Confetti celebration
+        function showConfetti() {
+            const colors = ['#6366F1', '#EC4899', '#10B981', '#F59E0B', '#818CF8'];
+            const confettiCount = 50;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `confetti-fall ${2 + Math.random() * 2}s linear forwards`;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                document.body.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+
+        // Lazy loading for images
+        document.addEventListener('DOMContentLoaded', function() {
+            const lazyImages = document.querySelectorAll('img[data-src]');
+
+            const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        img.classList.remove('lazy-image');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            }, { rootMargin: '50px' });
+
+            lazyImages.forEach(img => imageObserver.observe(img));
+
+            // Keyboard navigation for dropdowns
+            const dropdowns = document.querySelectorAll('.account-trigger');
+            dropdowns.forEach(dropdown => {
+                dropdown.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const menu = dropdown.querySelector('.account-dropdown');
+                        menu.classList.toggle('opacity-100');
+                        menu.classList.toggle('visible');
+                    }
+                });
+            });
+        });
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

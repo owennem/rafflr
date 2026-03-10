@@ -2,53 +2,87 @@
 
 {% block title %}Login - Rafflr{% endblock %}
 
+{% block head %}
+<style>
+    .auth-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                Or
-                <a href="/auth/register" class="font-medium text-primary hover:text-primary-dark">create a new account</a>
-            </p>
-        </div>
-
-        {% if error %}
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <form class="mt-8 space-y-6" action="/auth/login" method="POST">
-            {{ csrf_input(request) }}
-            <div class="space-y-4">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
-                    <input id="email" name="email" type="email" required
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+    <div class="auth-card max-w-md w-full">
+        <!-- Card -->
+        <div class="bg-dark-800 border border-slate-700/50 rounded-2xl p-8 shadow-dark-lg">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-glow mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                    </svg>
                 </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input id="password" name="password" type="password" required
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
-                </div>
+                <h2 class="text-2xl font-bold text-white tracking-tight">Welcome back</h2>
+                <p class="mt-2 text-slate-400">
+                    Don't have an account?
+                    <a href="/auth/register" class="font-semibold text-primary hover:text-primary-light transition-colors">Sign up</a>
+                </p>
             </div>
 
-            <div class="flex items-center justify-between">
-                <div class="text-sm">
-                    <a href="/auth/forgot-password" class="font-medium text-primary hover:text-primary-dark">
+            {% if error %}
+            <div class="mb-6 bg-error/10 border border-error/30 text-error px-4 py-3 rounded-xl flex items-center" role="alert">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="/auth/login" method="POST" class="space-y-5">
+                {{ csrf_input(request) }}
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email address</label>
+                    <input id="email" name="email" type="email" required autocomplete="email"
+                           class="w-full px-4 py-3 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                           placeholder="you@example.com"
+                           aria-describedby="email-description">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                    <input id="password" name="password" type="password" required autocomplete="current-password"
+                           class="w-full px-4 py-3 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                           placeholder="Enter your password">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <a href="/auth/forgot-password" class="text-sm font-medium text-primary hover:text-primary-light transition-colors">
                         Forgot your password?
                     </a>
                 </div>
-            </div>
 
-            <div>
                 <button type="submit"
-                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        class="btn-press btn-primary w-full flex justify-center items-center py-3 px-4 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold shadow-glow hover:shadow-glow-lg transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
                     Sign in
                 </button>
-            </div>
-        </form>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <p class="mt-6 text-center text-sm text-slate-500">
+            By signing in, you agree to our
+            <a href="#" class="text-slate-400 hover:text-slate-300">Terms of Service</a>
+            and
+            <a href="#" class="text-slate-400 hover:text-slate-300">Privacy Policy</a>
+        </p>
     </div>
 </div>
 {% endblock %}

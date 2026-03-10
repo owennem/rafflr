@@ -182,3 +182,120 @@ class EmailService:
         """
 
         return await EmailService.send_email(to_email, f"Winner selected for {listing_title}", html_content)
+
+    @staticmethod
+    async def send_raffle_ending_soon(
+        to_email: str,
+        username: str,
+        listing_title: str,
+        listing_id: int,
+        hours_remaining: int
+    ) -> bool:
+        """Notify user that a raffle they entered is ending soon."""
+        listing_url = f"{settings.frontend_url}/listings/{listing_id}"
+
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #F59E0B;">Raffle Ending Soon!</h1>
+            <p>Hi {username},</p>
+            <p>A raffle you've entered is ending in <strong>{hours_remaining} hours</strong>:</p>
+            <div style="background-color: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+                <h2 style="color: #1F2937; margin: 0;">{listing_title}</h2>
+            </div>
+            <p>Don't miss out! You can still buy more tickets to increase your chances of winning.</p>
+            <p style="margin: 30px 0;">
+                <a href="{listing_url}"
+                   style="background-color: #4F46E5; color: white; padding: 12px 24px;
+                          text-decoration: none; border-radius: 6px;">
+                    View Raffle
+                </a>
+            </p>
+            <p>Good luck!</p>
+            <p>Best,<br>The Rafflr Team</p>
+        </body>
+        </html>
+        """
+
+        return await EmailService.send_email(to_email, f"Ending soon: {listing_title}", html_content)
+
+    @staticmethod
+    async def send_new_listing_notification(
+        to_email: str,
+        username: str,
+        listing_title: str,
+        listing_id: int,
+        ticket_price: float,
+        seller_username: str
+    ) -> bool:
+        """Notify user about a new raffle listing."""
+        listing_url = f"{settings.frontend_url}/listings/{listing_id}"
+
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #4F46E5;">New Raffle Alert!</h1>
+            <p>Hi {username},</p>
+            <p>Check out this new raffle that just went live:</p>
+            <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h2 style="color: #1F2937; margin: 0 0 10px 0;">{listing_title}</h2>
+                <p style="margin: 5px 0; color: #6B7280;">by {seller_username}</p>
+                <p style="margin: 10px 0 0 0;">
+                    <span style="color: #4F46E5; font-size: 24px; font-weight: bold;">${ticket_price:.2f}</span>
+                    <span style="color: #6B7280;"> per ticket</span>
+                </p>
+            </div>
+            <p style="margin: 30px 0;">
+                <a href="{listing_url}"
+                   style="background-color: #4F46E5; color: white; padding: 12px 24px;
+                          text-decoration: none; border-radius: 6px;">
+                    Enter Now
+                </a>
+            </p>
+            <p>Best,<br>The Rafflr Team</p>
+            <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;">
+            <p style="color: #9CA3AF; font-size: 12px;">
+                You're receiving this because you have new listing notifications enabled.
+                <a href="{settings.frontend_url}/dashboard/profile" style="color: #6B7280;">Manage preferences</a>
+            </p>
+        </body>
+        </html>
+        """
+
+        return await EmailService.send_email(to_email, f"New raffle: {listing_title}", html_content)
+
+    @staticmethod
+    async def send_ticket_purchase_reminder(
+        to_email: str,
+        username: str,
+        listing_title: str,
+        listing_id: int,
+        tickets_remaining: int
+    ) -> bool:
+        """Remind user about a raffle that's almost sold out."""
+        listing_url = f"{settings.frontend_url}/listings/{listing_id}"
+
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #EC4899;">Almost Sold Out!</h1>
+            <p>Hi {username},</p>
+            <p>A raffle you viewed is almost sold out:</p>
+            <div style="background-color: #FDF2F8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #EC4899;">
+                <h2 style="color: #1F2937; margin: 0 0 10px 0;">{listing_title}</h2>
+                <p style="margin: 0; color: #BE185D; font-weight: bold;">Only {tickets_remaining} tickets left!</p>
+            </div>
+            <p>Don't miss your chance to enter!</p>
+            <p style="margin: 30px 0;">
+                <a href="{listing_url}"
+                   style="background-color: #EC4899; color: white; padding: 12px 24px;
+                          text-decoration: none; border-radius: 6px;">
+                    Get Tickets Now
+                </a>
+            </p>
+            <p>Best,<br>The Rafflr Team</p>
+        </body>
+        </html>
+        """
+
+        return await EmailService.send_email(to_email, f"Almost sold out: {listing_title}", html_content)

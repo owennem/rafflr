@@ -96,26 +96,30 @@
     </div>
 
     <!-- Filter Bar -->
-    <div class="bg-dark-800 border border-slate-700/50 rounded-2xl p-5 mb-8 reveal">
-        <form action="/listings" method="GET" class="flex flex-wrap gap-4 items-end">
+    <div class="bg-dark-800 border border-slate-700/50 rounded-2xl p-5 mb-6 reveal">
+        <form action="/listings" method="GET" id="filter-form" class="flex flex-wrap gap-4 items-end">
             <div class="flex-grow min-w-[200px]">
                 <label class="block text-sm font-medium text-slate-300 mb-1">Search</label>
-                <input type="text" name="search" value="{{ search or '' }}" placeholder="Search raffles..."
-                       class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                <input type="text" name="search" id="search-input" value="{{ search or '' }}" placeholder="Search raffles..."
+                       class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                       aria-label="Search raffles">
             </div>
             <div class="w-28">
                 <label class="block text-sm font-medium text-slate-300 mb-1">Min Price</label>
-                <input type="number" name="min_price" value="{{ min_price or '' }}" placeholder="$0" step="0.01"
-                       class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                <input type="number" name="min_price" id="min-price-input" value="{{ min_price or '' }}" placeholder="$0" step="0.01"
+                       class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                       aria-label="Minimum price">
             </div>
             <div class="w-28">
                 <label class="block text-sm font-medium text-slate-300 mb-1">Max Price</label>
-                <input type="number" name="max_price" value="{{ max_price or '' }}" placeholder="$999" step="0.01"
-                       class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                <input type="number" name="max_price" id="max-price-input" value="{{ max_price or '' }}" placeholder="$999" step="0.01"
+                       class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                       aria-label="Maximum price">
             </div>
             <div class="w-44">
                 <label class="block text-sm font-medium text-slate-300 mb-1">Sort By</label>
-                <select name="sort" class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                <select name="sort" id="sort-select" class="w-full px-4 py-2.5 bg-dark-700 border border-slate-600/50 text-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                        aria-label="Sort by">
                     <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest First</option>
                     <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest First</option>
                     <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
@@ -123,11 +127,70 @@
                     <option value="ending_soon" {% if sort == 'ending_soon' %}selected{% endif %}>Ending Soon</option>
                 </select>
             </div>
-            <button type="submit" class="bg-dark-700 border border-slate-600/50 text-slate-200 px-6 py-2.5 rounded-xl font-medium hover:bg-dark-600 hover:border-primary/50 transition-all">
-                Apply Filters
-            </button>
+            <div class="flex gap-2">
+                <button type="submit" class="btn-press bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-2.5 rounded-xl font-semibold shadow-glow hover:shadow-glow-lg transition-all">
+                    Apply
+                </button>
+                {% if search or min_price or max_price or (sort and sort != 'newest') %}
+                <a href="/listings" class="bg-dark-700 border border-slate-600/50 text-slate-300 px-4 py-2.5 rounded-xl font-medium hover:bg-dark-600 hover:text-white transition-all flex items-center" aria-label="Clear all filters">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Clear
+                </a>
+                {% endif %}
+            </div>
         </form>
     </div>
+
+    <!-- Active Filter Chips -->
+    {% if search or min_price or max_price or (sort and sort != 'newest') %}
+    <div class="flex flex-wrap gap-2 mb-6 reveal" role="region" aria-label="Active filters">
+        {% if search %}
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-primary/20 text-primary border border-primary/30">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            "{{ search }}"
+            <button type="button" onclick="removeFilter('search')" class="ml-2 hover:text-white transition-colors" aria-label="Remove search filter">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </span>
+        {% endif %}
+        {% if min_price %}
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-secondary/20 text-secondary border border-secondary/30">
+            Min: ${{ min_price }}
+            <button type="button" onclick="removeFilter('min_price')" class="ml-2 hover:text-white transition-colors" aria-label="Remove minimum price filter">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </span>
+        {% endif %}
+        {% if max_price %}
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-secondary/20 text-secondary border border-secondary/30">
+            Max: ${{ max_price }}
+            <button type="button" onclick="removeFilter('max_price')" class="ml-2 hover:text-white transition-colors" aria-label="Remove maximum price filter">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </span>
+        {% endif %}
+        {% if sort and sort != 'newest' %}
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-slate-500/20 text-slate-300 border border-slate-500/30">
+            Sort: {{ sort|replace('_', ' ')|title }}
+            <button type="button" onclick="removeFilter('sort')" class="ml-2 hover:text-white transition-colors" aria-label="Remove sort filter">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
 
     {% if listings %}
     <!-- Listings Grid -->
@@ -295,11 +358,39 @@ function toggleFavorite(event, listingId) {
     .then(response => {
         if (!response.ok) {
             btn.classList.toggle('favorited');
+        } else {
+            showToast(isFavorited ? 'Removed from favorites' : 'Added to favorites', 'success');
         }
     })
     .catch(() => {
         btn.classList.toggle('favorited');
     });
 }
+
+// Remove individual filter
+function removeFilter(filterName) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(filterName);
+    if (filterName === 'sort') {
+        url.searchParams.set('sort', 'newest');
+    }
+    window.location.href = url.toString();
+}
+
+// Preserve filters in URL on form submit
+document.getElementById('filter-form').addEventListener('submit', function(e) {
+    // Update URL without page reload for better UX
+    const formData = new FormData(this);
+    const url = new URL(window.location.origin + '/listings');
+
+    for (const [key, value] of formData.entries()) {
+        if (value) {
+            url.searchParams.set(key, value);
+        }
+    }
+
+    // Update browser history
+    window.history.replaceState({}, '', url.toString());
+});
 </script>
 {% endblock %}

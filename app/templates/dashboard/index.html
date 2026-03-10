@@ -2,99 +2,259 @@
 
 {% block title %}Dashboard - Rafflr{% endblock %}
 
+{% block head %}
+<style>
+    .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+    .reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .stagger-1 { transition-delay: 0.05s; }
+    .stagger-2 { transition-delay: 0.1s; }
+    .stagger-3 { transition-delay: 0.15s; }
+    .stagger-4 { transition-delay: 0.2s; }
+
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #6366F1, #EC4899);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    @keyframes countUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .count-animate {
+        animation: countUp 0.5s ease-out forwards;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+    <!-- Header -->
+    <div class="mb-8 reveal">
+        <h1 class="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+        <p class="mt-1 text-slate-400">Welcome back, {{ user.username }}</p>
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <p class="text-sm text-gray-500">Active Listings</p>
-            <p class="text-3xl font-bold text-gray-900">{{ active_listings|length }}</p>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="reveal stagger-1 stat-card bg-dark-800 border border-slate-700/50 rounded-2xl p-6 hover:border-primary/50 transition-all card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Active Listings</p>
+                    <p class="mt-2 text-3xl font-bold text-white count-animate">{{ active_listings|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+            </div>
         </div>
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <p class="text-sm text-gray-500">Completed Raffles</p>
-            <p class="text-3xl font-bold text-gray-900">{{ completed_listings|length }}</p>
+
+        <div class="reveal stagger-2 stat-card bg-dark-800 border border-slate-700/50 rounded-2xl p-6 hover:border-secondary/50 transition-all card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Completed Raffles</p>
+                    <p class="mt-2 text-3xl font-bold text-white count-animate">{{ completed_listings|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
         </div>
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <p class="text-sm text-gray-500">Active Tickets</p>
-            <p class="text-3xl font-bold text-gray-900">{{ tickets|selectattr('listing.status.value', 'eq', 'active')|list|length }}</p>
+
+        <div class="reveal stagger-3 stat-card bg-dark-800 border border-slate-700/50 rounded-2xl p-6 hover:border-primary-light/50 transition-all card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Active Tickets</p>
+                    <p class="mt-2 text-3xl font-bold text-white count-animate">{{ tickets|selectattr('listing.status.value', 'eq', 'active')|list|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-primary-light/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                    </svg>
+                </div>
+            </div>
         </div>
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <p class="text-sm text-gray-500">Wins</p>
-            <p class="text-3xl font-bold text-primary">{{ won_listings|length }}</p>
+
+        <div class="reveal stagger-4 stat-card bg-dark-800 border border-slate-700/50 rounded-2xl p-6 hover:border-success/50 transition-all card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Wins</p>
+                    <p class="mt-2 text-3xl font-bold bg-gradient-to-r from-success to-primary bg-clip-text text-transparent count-animate">{{ won_listings|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-success/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-900">My Listings</h2>
-                <a href="/dashboard/listings" class="text-primary hover:underline text-sm">View all</a>
+        <!-- My Listings -->
+        <div class="reveal bg-dark-800 border border-slate-700/50 rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-white">My Listings</h2>
+                <a href="/dashboard/listings" class="text-primary hover:text-primary-light text-sm font-medium transition-colors flex items-center group">
+                    View all
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
             </div>
             {% if active_listings %}
             <div class="space-y-4">
                 {% for listing in active_listings[:5] %}
-                <a href="/listings/{{ listing.id }}" class="block p-4 border rounded-md hover:bg-gray-50">
-                    <div class="flex justify-between">
-                        <span class="font-medium">{{ listing.title }}</span>
-                        <span class="text-sm text-gray-500">{{ listing.tickets_sold }}/{{ listing.max_tickets }}</span>
+                <a href="/listings/{{ listing.id }}" class="block p-4 bg-dark-700/50 border border-slate-600/30 rounded-xl hover:border-primary/50 hover:bg-dark-700 transition-all group">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-slate-100 group-hover:text-primary transition-colors">{{ listing.title }}</span>
+                        <span class="text-sm text-slate-400 bg-dark-600 px-2 py-1 rounded-lg">{{ listing.tickets_sold }}/{{ listing.max_tickets }}</span>
                     </div>
-                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-primary rounded-full h-2" style="width: {{ (listing.tickets_sold / listing.max_tickets * 100)|int }}%"></div>
+                    <div class="mt-3 w-full bg-dark-600 rounded-full h-2 overflow-hidden">
+                        <div class="bg-gradient-to-r from-primary to-secondary rounded-full h-2 transition-all duration-500" style="width: {{ (listing.tickets_sold / listing.max_tickets * 100)|int }}%"></div>
                     </div>
                 </a>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-gray-500">No active listings.</p>
-            <a href="/listings/create" class="mt-4 inline-block text-primary hover:underline">Create one!</a>
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-dark-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <p class="text-slate-400 mb-4">No active listings</p>
+                <a href="/listings/create" class="inline-flex items-center text-primary hover:text-primary-light font-medium group">
+                    Create one
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </a>
+            </div>
             {% endif %}
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-900">My Tickets</h2>
-                <a href="/dashboard/tickets" class="text-primary hover:underline text-sm">View all</a>
+        <!-- My Tickets -->
+        <div class="reveal bg-dark-800 border border-slate-700/50 rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-white">My Tickets</h2>
+                <a href="/dashboard/tickets" class="text-primary hover:text-primary-light text-sm font-medium transition-colors flex items-center group">
+                    View all
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
             </div>
             {% if tickets %}
             <div class="space-y-4">
                 {% for ticket in tickets[:5] %}
-                <a href="/listings/{{ ticket.listing.id }}" class="block p-4 border rounded-md hover:bg-gray-50">
-                    <div class="flex justify-between">
-                        <span class="font-medium">{{ ticket.listing.title }}</span>
-                        <span class="text-primary font-semibold">{{ ticket.quantity }} ticket(s)</span>
+                <a href="/listings/{{ ticket.listing.id }}" class="block p-4 bg-dark-700/50 border border-slate-600/30 rounded-xl hover:border-primary/50 hover:bg-dark-700 transition-all group">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-slate-100 group-hover:text-primary transition-colors">{{ ticket.listing.title }}</span>
+                        <span class="text-primary font-bold">{{ ticket.quantity }} ticket(s)</span>
                     </div>
-                    <div class="mt-1 text-sm text-gray-500">
+                    <div class="mt-2 flex items-center">
                         {% if ticket.listing.status.value == 'active' %}
-                        <span class="text-green-600">Active</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/20 text-success border border-success/30">
+                            <span class="w-1.5 h-1.5 bg-success rounded-full mr-1.5 animate-pulse"></span>
+                            Active
+                        </span>
                         {% elif ticket.listing.status.value == 'drawn' %}
-                        <span class="text-blue-600">Drawn</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/30">
+                            Drawn
+                        </span>
                         {% else %}
-                        <span class="text-gray-600">Cancelled</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/20 text-slate-400 border border-slate-500/30">
+                            Cancelled
+                        </span>
                         {% endif %}
                     </div>
                 </a>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-gray-500">No tickets purchased yet.</p>
-            <a href="/listings" class="mt-4 inline-block text-primary hover:underline">Browse raffles</a>
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-dark-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                    </svg>
+                </div>
+                <p class="text-slate-400 mb-4">No tickets purchased yet</p>
+                <a href="/listings" class="inline-flex items-center text-primary hover:text-primary-light font-medium group">
+                    Browse raffles
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+            </div>
             {% endif %}
         </div>
     </div>
 
+    <!-- Wins Section -->
     {% if won_listings %}
-    <div class="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
-        <h2 class="text-xl font-semibold text-green-800 mb-4">Your Wins!</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for listing in won_listings %}
-            <a href="/listings/{{ listing.id }}" class="bg-white rounded-md p-4 shadow-sm hover:shadow-md">
-                <p class="font-semibold text-gray-900">{{ listing.title }}</p>
-                <p class="text-sm text-gray-500 mt-1">Won on {{ listing.drawn_at.strftime('%b %d, %Y') }}</p>
-            </a>
-            {% endfor %}
+    <div class="mt-8 reveal">
+        <div class="bg-gradient-to-r from-success/20 to-primary/20 border border-success/30 rounded-2xl p-6">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-success/30 rounded-xl flex items-center justify-center mr-3">
+                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-white">Your Wins</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for listing in won_listings %}
+                <a href="/listings/{{ listing.id }}" class="bg-dark-800/50 border border-success/20 rounded-xl p-4 hover:border-success/50 hover:bg-dark-800 transition-all group">
+                    <p class="font-semibold text-white group-hover:text-success transition-colors">{{ listing.title }}</p>
+                    <p class="text-sm text-slate-400 mt-1">Won on {{ listing.drawn_at.strftime('%b %d, %Y') }}</p>
+                </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+});
+</script>
 {% endblock %}
