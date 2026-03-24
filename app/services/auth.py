@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 import secrets
+import random
 import bcrypt
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -135,6 +136,50 @@ class AuthService:
         user.reset_token_expires = None
         db.commit()
         return True
+
+    @staticmethod
+    def generate_2fa_code() -> str:
+        """Generate a 6-digit verification code."""
+        return str(random.randint(100000, 999999))
+
+    @staticmethod
+    def create_2fa_code(db: Session, user: User, action: str = "login") -> str:
+        """Create and store a 2FA code for a user."""
+        code = AuthService.generate_2fa_code()
+        user.twofa_code = code
+        user.twofa_code_expires = datetime.utcnow() + timedelta(minutes=10)
+        user.twofa_pending_action = action
+        db.commit()
+        return code
+
+    @staticmethod
+    def verify_2fa_code(db: Session, user_id: int, code: str) -> Optional[User]:
+        """Verify a 2FA code and return the user if valid."""
+        user = db.query(User).filter(
+            User.id == user_id,
+            User.twofa_code == code,
+            User.twofa_code_expires > datetime.utcnow()
+        ).first()
+        if user:
+            # Clear the 2FA code after successful verification
+            user.twofa_code = None
+            user.twofa_code_expires = None
+            action = user.twofa_pending_action
+            user.twofa_pending_action = None
+            # If this was a registration verification, mark user as verified
+            if action == "registration":
+                user.is_verified = True
+            db.commit()
+            db.refresh(user)
+        return user
+
+    @staticmethod
+    def clear_2fa_code(db: Session, user: User):
+        """Clear any pending 2FA code for a user."""
+        user.twofa_code = None
+        user.twofa_code_expires = None
+        user.twofa_pending_action = None
+        db.commit()
 
 
 def get_token_from_cookie(request: Request) -> Optional[str]:

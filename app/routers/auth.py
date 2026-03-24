@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from slowapi import Limiter
 from pydantic import ValidationError
+import logging
 
 from app.database import get_db
 from app.services.auth import (
@@ -23,6 +24,7 @@ from app.utils.rate_limit import get_rate_limit_key
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 limiter = Limiter(key_func=get_rate_limit_key)
+logger = logging.getLogger(__name__)
 
 
 @router.get("/register", response_class=HTMLResponse)
@@ -95,24 +97,31 @@ async def register(
             status_code=400
         )
     except Exception as e:
-        import logging
-        logging.error(f"Registration error: {e}")
+        logger.error(f"Registration error: {e}")
         return templates.TemplateResponse(
             "auth/register.html",
             {"request": request, "error": "An error occurred during registration. Please try again."},
             status_code=500
         )
 
+    # Generate 2FA code for registration verification
+    code = AuthService.create_2fa_code(db, user, action="registration")
     background_tasks.add_task(
-        EmailService.send_verification_email,
+        EmailService.send_2fa_code,
         user.email,
         user.username,
-        user.verification_token
+        code,
+        "registration"
     )
 
     return templates.TemplateResponse(
-        "auth/register_success.html",
-        {"request": request, "email": email}
+        "auth/verify_2fa.html",
+        {
+            "request": request,
+            "email": user.email,
+            "user_id": user.id,
+            "action": "registration"
+        }
     )
 
 
@@ -143,6 +152,7 @@ async def login_page(request: Request, user: User = Depends(get_current_user)):
 async def login(
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     email: str = Form(..., max_length=MAX_EMAIL_LENGTH),
     password: str = Form(..., max_length=MAX_PASSWORD_LENGTH),
     db: Session = Depends(get_db)
@@ -167,10 +177,33 @@ async def login(
             status_code=400
         )
 
-    access_token = AuthService.create_access_token(data={"sub": str(user.id)})
-    redirect = RedirectResponse(url="/listings?login=success", status_code=302)
-    set_auth_cookie(redirect, access_token, request)
-    return redirect
+    # Check if user is verified
+    if not user.is_verified:
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Please verify your email first. Check your inbox for a verification code."},
+            status_code=400
+        )
+
+    # Generate 2FA code for login
+    code = AuthService.create_2fa_code(db, user, action="login")
+    background_tasks.add_task(
+        EmailService.send_2fa_code,
+        user.email,
+        user.username,
+        code,
+        "login"
+    )
+
+    return templates.TemplateResponse(
+        "auth/verify_2fa.html",
+        {
+            "request": request,
+            "email": user.email,
+            "user_id": user.id,
+            "action": "login"
+        }
+    )
 
 
 @router.get("/logout")
@@ -247,4 +280,106 @@ async def reset_password(
         "auth/reset_password.html",
         {"request": request, "token": token, "error": "Invalid or expired reset link"},
         status_code=400
+    )
+
+
+@router.post("/verify-2fa")
+@limiter.limit("10/minute")  # Rate limit 2FA verification attempts
+async def verify_2fa(
+    request: Request,
+    user_id: int = Form(...),
+    code: str = Form(..., max_length=6),
+    action: str = Form(..., max_length=20),
+    db: Session = Depends(get_db)
+):
+    # Sanitize inputs
+    code = code.strip()[:6]
+    action = action.strip()[:20]
+
+    # Validate user_id
+    if user_id < 1:
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Invalid verification request"},
+            status_code=400
+        )
+
+    # Get user to display email in error case
+    user = AuthService.get_user_by_id(db, user_id)
+    if not user:
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Invalid verification request"},
+            status_code=400
+        )
+
+    # Verify the 2FA code
+    verified_user = AuthService.verify_2fa_code(db, user_id, code)
+    if not verified_user:
+        return templates.TemplateResponse(
+            "auth/verify_2fa.html",
+            {
+                "request": request,
+                "email": user.email,
+                "user_id": user_id,
+                "action": action,
+                "error": "Invalid or expired verification code"
+            },
+            status_code=400
+        )
+
+    # Create access token and log the user in
+    access_token = AuthService.create_access_token(data={"sub": str(verified_user.id)})
+    redirect = RedirectResponse(url="/listings?login=success", status_code=302)
+    set_auth_cookie(redirect, access_token, request)
+    return redirect
+
+
+@router.post("/resend-2fa")
+@limiter.limit("3/minute")  # Rate limit resend attempts
+async def resend_2fa(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    user_id: int = Form(...),
+    action: str = Form(..., max_length=20),
+    db: Session = Depends(get_db)
+):
+    # Sanitize inputs
+    action = action.strip()[:20]
+
+    # Validate user_id
+    if user_id < 1:
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Invalid request"},
+            status_code=400
+        )
+
+    user = AuthService.get_user_by_id(db, user_id)
+    if not user:
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Invalid request"},
+            status_code=400
+        )
+
+    # Generate new 2FA code
+    code = AuthService.create_2fa_code(db, user, action=action)
+    background_tasks.add_task(
+        EmailService.send_2fa_code,
+        user.email,
+        user.username,
+        code,
+        action
+    )
+
+    return templates.TemplateResponse(
+        "auth/verify_2fa.html",
+        {
+            "request": request,
+            "email": user.email,
+            "user_id": user.id,
+            "action": action,
+            "success": "A new verification code has been sent to your email"
+        }
     )

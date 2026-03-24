@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.database import get_db
 from app.services.payment import PaymentService
@@ -43,13 +44,24 @@ async def stripe_webhook(
             listing = db.query(Listing).filter(Listing.id == listing_id).first()
 
             if transaction and listing and transaction.user:
+                # Get user's total tickets for this listing
+                user_total_tickets = db.query(func.sum(Ticket.quantity)).filter(
+                    Ticket.listing_id == listing_id,
+                    Ticket.buyer_id == user_id
+                ).scalar() or 0
+
+                # Send detailed ticket entry confirmation
                 background_tasks.add_task(
-                    EmailService.send_purchase_confirmation,
+                    EmailService.send_ticket_entry_confirmation,
                     transaction.user.email,
                     transaction.user.username,
                     listing.title,
+                    listing.id,
                     quantity,
-                    transaction.amount
+                    transaction.amount,
+                    listing.tickets_sold,
+                    listing.max_tickets,
+                    user_total_tickets
                 )
 
     return {"status": "success"}

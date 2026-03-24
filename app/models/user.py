@@ -16,6 +16,10 @@ class User(Base):
     verification_token = Column(String(255), nullable=True)
     reset_token = Column(String(255), nullable=True)
     reset_token_expires = Column(DateTime, nullable=True)
+    # 2FA fields
+    twofa_code = Column(String(6), nullable=True)
+    twofa_code_expires = Column(DateTime, nullable=True)
+    twofa_pending_action = Column(String(20), nullable=True)  # 'login' or 'registration'
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

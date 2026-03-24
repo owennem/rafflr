@@ -123,6 +123,7 @@ async def create_listing_page(
 @limiter.limit("10/minute")  # Max 10 listing creations per minute per IP
 async def create_listing(
     request: Request,
+    background_tasks: BackgroundTasks,
     title: str = Form(..., max_length=MAX_TITLE_LENGTH),
     description: str = Form(None, max_length=MAX_DESCRIPTION_LENGTH),
     image_url: str = Form(None, max_length=MAX_URL_LENGTH),
@@ -250,6 +251,19 @@ async def create_listing(
 
     if deadline_dt and draw_type_enum in [DrawType.DEADLINE, DrawType.BOTH]:
         schedule_raffle_draw(listing.id, deadline_dt)
+
+    # Send listing created confirmation email
+    deadline_str = deadline_dt.strftime("%B %d, %Y at %I:%M %p") if deadline_dt else None
+    background_tasks.add_task(
+        EmailService.send_listing_created,
+        user.email,
+        user.username,
+        title,
+        listing.id,
+        ticket_price,
+        max_tickets,
+        deadline_str
+    )
 
     return RedirectResponse(url=f"/listings/{listing.id}", status_code=302)
 

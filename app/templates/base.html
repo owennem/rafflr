@@ -107,17 +107,29 @@
         }
 
         /* Account dropdown */
+        .account-trigger {
+            position: relative;
+        }
+        .account-dropdown-wrapper {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            padding-top: 0.5rem;
+            z-index: 9999;
+        }
         .account-dropdown {
             opacity: 0;
             visibility: hidden;
             transform: translateY(-10px);
             transition: all 0.2s ease-out;
+            pointer-events: none;
         }
         .account-trigger:hover .account-dropdown,
-        .account-dropdown:hover {
+        .account-trigger:focus-within .account-dropdown {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
+            pointer-events: auto;
         }
 
         /* Toast animations */
@@ -299,7 +311,7 @@
                     {% endif %}
 
                     <!-- Account Dropdown -->
-                    <div class="relative account-trigger">
+                    <div class="account-trigger">
                         <button class="flex items-center space-x-2 bg-dark-700 hover:bg-dark-600 px-4 py-2 rounded-xl transition-colors border border-slate-500/20">
                             <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
                                 <span class="text-white font-bold text-sm">{{ user.username[0]|upper }}</span>
@@ -311,7 +323,8 @@
                         </button>
 
                         <!-- Dropdown Menu -->
-                        <div class="account-dropdown absolute right-0 top-full mt-2 w-72 bg-dark-800 rounded-2xl shadow-dark-lg border border-slate-500/20 overflow-hidden z-50">
+                        <div class="account-dropdown-wrapper">
+                        <div class="account-dropdown w-72 bg-dark-800 rounded-2xl shadow-dark-lg border border-slate-500/20 overflow-hidden">
                             <!-- User Info Header -->
                             <div class="px-5 py-4 bg-gradient-to-r from-primary/20 to-secondary/20 border-b border-slate-500/20">
                                 <div class="flex items-center space-x-3">
@@ -368,6 +381,7 @@
                                     Logout
                                 </a>
                             </div>
+                        </div>
                         </div>
                     </div>
                     {% else %}
