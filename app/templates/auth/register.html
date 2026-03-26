@@ -5,96 +5,81 @@
 {% block head %}
 <style>
     .auth-card {
-        animation: fadeInUp 0.5s ease-out;
+        animation: fadeIn 0.3s ease-out;
     }
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
     }
     .password-strength {
-        height: 4px;
+        height: 3px;
         border-radius: 2px;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease-out;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="auth-card max-w-md w-full">
-        <!-- Card -->
-        <div class="bg-dark-800 border border-slate-700/50 rounded-2xl p-8 shadow-dark-lg">
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <div class="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-glow mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold text-white tracking-tight">Create your account</h2>
-                <p class="mt-2 text-slate-400">
-                    Already have an account?
-                    <a href="/auth/login" class="font-semibold text-primary hover:text-primary-light transition-colors">Sign in</a>
-                </p>
-            </div>
-
-            {% if error %}
-            <div class="mb-6 bg-error/10 border border-error/30 text-error px-4 py-3 rounded-xl flex items-center" role="alert">
-                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                {{ error }}
-            </div>
-            {% endif %}
-
-            <form action="/auth/register" method="POST" class="space-y-5">
-                {{ csrf_input(request) }}
-
-                <div>
-                    <label for="username" class="block text-sm font-medium text-slate-300 mb-2">Username</label>
-                    <input id="username" name="username" type="text" required autocomplete="username"
-                           class="w-full px-4 py-3 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                           placeholder="Choose a username">
-                </div>
-
-                <div>
-                    <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email address</label>
-                    <input id="email" name="email" type="email" required autocomplete="email"
-                           class="w-full px-4 py-3 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                           placeholder="you@example.com">
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-slate-300 mb-2">Password</label>
-                    <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password"
-                           class="w-full px-4 py-3 bg-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                           placeholder="Create a strong password"
-                           oninput="updatePasswordStrength(this.value)">
-                    <div class="mt-2 flex gap-1">
-                        <div id="strength-1" class="password-strength flex-1 bg-dark-600"></div>
-                        <div id="strength-2" class="password-strength flex-1 bg-dark-600"></div>
-                        <div id="strength-3" class="password-strength flex-1 bg-dark-600"></div>
-                        <div id="strength-4" class="password-strength flex-1 bg-dark-600"></div>
-                    </div>
-                    <p class="mt-2 text-sm text-slate-500">Must be at least 8 characters</p>
-                </div>
-
-                <button type="submit"
-                        class="btn-press btn-primary w-full flex justify-center items-center py-3 px-4 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold shadow-glow hover:shadow-glow-lg transition-all">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
-                    Create account
-                </button>
-            </form>
+    <div class="auth-card w-full max-w-sm">
+        <!-- Header - left aligned -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-white">Create account</h1>
+            <p class="mt-1 text-slate-400">
+                Already have an account?
+                <a href="/auth/login" class="text-primary hover:text-primary-light transition-colors">Sign in</a>
+            </p>
         </div>
 
-        <!-- Footer -->
-        <p class="mt-6 text-center text-sm text-slate-500">
+        {% if error %}
+        <div class="mb-4 bg-error/10 border border-error/20 text-error px-3 py-2 rounded-lg text-sm" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/auth/register" method="POST" class="space-y-4">
+            {{ csrf_input(request) }}
+
+            <div>
+                <label for="username" class="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+                <input id="username" name="username" type="text" required autocomplete="username"
+                       class="w-full px-3 py-2 bg-dark-800 border border-dark-600 text-white placeholder-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                       placeholder="Choose a username">
+            </div>
+
+            <div>
+                <label for="email" class="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+                <input id="email" name="email" type="email" required autocomplete="email"
+                       class="w-full px-3 py-2 bg-dark-800 border border-dark-600 text-white placeholder-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                       placeholder="you@example.com">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+                <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password"
+                       class="w-full px-3 py-2 bg-dark-800 border border-dark-600 text-white placeholder-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                       placeholder="Create a password"
+                       oninput="updatePasswordStrength(this.value)">
+                <div class="mt-2 flex gap-1">
+                    <div id="strength-1" class="password-strength flex-1 bg-dark-600"></div>
+                    <div id="strength-2" class="password-strength flex-1 bg-dark-600"></div>
+                    <div id="strength-3" class="password-strength flex-1 bg-dark-600"></div>
+                    <div id="strength-4" class="password-strength flex-1 bg-dark-600"></div>
+                </div>
+                <p class="mt-1.5 text-xs text-slate-500">At least 8 characters</p>
+            </div>
+
+            <button type="submit"
+                    class="btn-press w-full py-2.5 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primary-light transition-colors">
+                Create account
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-xs text-slate-500">
             By creating an account, you agree to our
-            <a href="#" class="text-slate-400 hover:text-slate-300">Terms of Service</a>
+            <a href="#" class="hover:text-slate-400">Terms</a>
             and
-            <a href="#" class="text-slate-400 hover:text-slate-300">Privacy Policy</a>
+            <a href="#" class="hover:text-slate-400">Privacy Policy</a>
         </p>
     </div>
 </div>

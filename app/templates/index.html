@@ -13,99 +13,23 @@
     /* Scroll reveal animations */
     .reveal {
         opacity: 0;
-        transform: translateY(40px);
-        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        transform: translateY(12px);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
     }
     .reveal.revealed {
         opacity: 1;
         transform: translateY(0);
     }
-    .reveal-zoom {
-        opacity: 0;
-        transform: scale(0.9);
-        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    }
-    .reveal-zoom.revealed {
-        opacity: 1;
-        transform: scale(1);
-    }
-    .reveal-left {
-        opacity: 0;
-        transform: translateX(-40px);
-        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-    }
-    .reveal-left.revealed {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    .reveal-right {
-        opacity: 0;
-        transform: translateX(40px);
-        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-    }
-    .reveal-right.revealed {
-        opacity: 1;
-        transform: translateX(0);
-    }
 
     /* Staggered animation delays for grid items */
-    .stagger-1 { transition-delay: 0.1s; }
-    .stagger-2 { transition-delay: 0.2s; }
-    .stagger-3 { transition-delay: 0.3s; }
-    .stagger-4 { transition-delay: 0.4s; }
-    .stagger-5 { transition-delay: 0.5s; }
-    .stagger-6 { transition-delay: 0.6s; }
+    .stagger-1 { transition-delay: 0.02s; }
+    .stagger-2 { transition-delay: 0.04s; }
+    .stagger-3 { transition-delay: 0.06s; }
 
-    /* Heart animation */
-    @keyframes heartBurst {
-        0% { transform: scale(1); }
-        25% { transform: scale(1.3); }
-        50% { transform: scale(0.9); }
-        75% { transform: scale(1.15); }
-        100% { transform: scale(1); }
-    }
-    @keyframes heartPulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-    .heart-burst {
-        animation: heartBurst 0.5s ease-out;
-    }
-    .heart-btn:hover .heart-icon {
-        animation: heartPulse 0.8s ease-in-out infinite;
-    }
+    /* Heart animation - simplified */
     .heart-btn.favorited .heart-icon {
-        fill: #EC4899;
+        fill: currentColor;
         color: #EC4899;
-    }
-
-    /* Floating particles */
-    @keyframes float {
-        0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
-        50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
-    }
-    .particle {
-        position: absolute;
-        pointer-events: none;
-        animation: float 6s ease-in-out infinite;
-    }
-
-    /* Glowing card effect */
-    .card-glow {
-        position: relative;
-    }
-    .card-glow::before {
-        content: '';
-        position: absolute;
-        inset: -1px;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(236, 72, 153, 0.3));
-        border-radius: inherit;
-        z-index: -1;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    .card-glow:hover::before {
-        opacity: 1;
     }
 </style>
 {% endblock %}
@@ -113,15 +37,6 @@
 {% block content %}
 <!-- Hero Section with Parallax Image Slideshow -->
 <div class="relative h-[600px] sm:h-[700px] overflow-hidden" id="hero">
-    <!-- Floating Particles with gradient colors -->
-    <div class="absolute inset-0 z-5 overflow-hidden pointer-events-none">
-        <div class="particle w-2 h-2 bg-primary/40 rounded-full" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
-        <div class="particle w-3 h-3 bg-secondary/30 rounded-full" style="top: 60%; left: 80%; animation-delay: 1s;"></div>
-        <div class="particle w-2 h-2 bg-primary/35 rounded-full" style="top: 40%; left: 60%; animation-delay: 2s;"></div>
-        <div class="particle w-4 h-4 bg-secondary/25 rounded-full" style="top: 70%; left: 20%; animation-delay: 3s;"></div>
-        <div class="particle w-2 h-2 bg-primary/40 rounded-full" style="top: 30%; left: 90%; animation-delay: 4s;"></div>
-    </div>
-
     <!-- Image Slideshow Container -->
     <div class="hero-slideshow absolute inset-0">
         <!-- Slide 1: Luxury Car -->
@@ -156,32 +71,30 @@
         </div>
     </div>
 
-    <!-- Dark Overlay with gradient to match theme -->
-    <div class="absolute inset-0 bg-gradient-to-b from-dark-900/80 via-dark-900/50 to-dark-900/90"></div>
-    <!-- Additional color overlay for brand feel -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20"></div>
+    <!-- Dark Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-b from-dark-900/70 via-dark-900/40 to-dark-900/90"></div>
 
     <!-- Hero Content -->
     <div class="relative z-10 h-full flex items-center justify-center">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="inline-flex items-center bg-dark-800/60 backdrop-blur-md border border-slate-500/20 rounded-full px-4 py-1.5 mb-6 reveal-zoom revealed">
-                <svg class="w-4 h-4 text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="inline-flex items-center bg-dark-800/60 border border-dark-600 rounded-full px-4 py-1.5 mb-6">
+                <svg class="w-4 h-4 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <span class="text-slate-200 text-sm font-medium">New raffles added daily</span>
+                <span class="text-slate-300 text-sm font-medium">New raffles added daily</span>
             </div>
-            <h1 class="text-4xl font-extrabold sm:text-5xl md:text-6xl lg:text-7xl text-white drop-shadow-lg">
-                Win <span class="bg-gradient-to-r from-primary via-purple-400 to-secondary bg-clip-text text-transparent">Amazing</span> Prizes
+            <h1 class="text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl text-white">
+                Win Amazing Prizes
             </h1>
-            <p class="mt-6 max-w-2xl mx-auto text-xl sm:text-2xl text-slate-300 drop-shadow-md">
+            <p class="mt-6 max-w-2xl mx-auto text-xl sm:text-2xl text-slate-300">
                 Purchase raffle tickets for a chance to win products at a fraction of their retail price.
             </p>
             <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-                <a href="/listings" class="bg-gradient-to-r from-primary to-primary-dark text-white px-8 py-4 rounded-xl font-bold text-lg shadow-glow hover:shadow-glow-lg hover:scale-105 transition-all duration-300">
+                <a href="/listings" class="btn-press bg-primary text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-primary-light transition-colors">
                     Browse Raffles
                 </a>
                 {% if not user %}
-                <a href="/auth/register" class="border-2 border-slate-400/50 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/10 hover:border-white backdrop-blur-sm transition-all duration-300">
+                <a href="/auth/register" class="border border-slate-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/10 hover:border-slate-400 transition-colors">
                     Get Started Free
                 </a>
                 {% endif %}
@@ -202,22 +115,22 @@
 <!-- Featured Raffles Section -->
 <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-10 reveal">
-        <h2 class="text-3xl font-bold text-white">Featured <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Raffles</span></h2>
+        <h2 class="text-3xl font-bold text-white">Featured Raffles</h2>
         <p class="mt-2 text-slate-400">Discover exciting products waiting for a lucky winner</p>
     </div>
 
     {% if featured_listings %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for listing in featured_listings %}
-        <div class="reveal-zoom stagger-{{ loop.index }} card-glow bg-dark-800 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:-translate-y-2 group relative">
+        <div class="reveal stagger-{{ loop.index }} bg-dark-800 border border-dark-700 rounded-xl overflow-hidden hover:border-dark-600 transition-colors group relative">
             <!-- Favorite Button -->
             {% if user %}
             <button
-                class="heart-btn absolute top-4 right-4 z-10 w-10 h-10 bg-dark-900/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-dark-800 border border-slate-600/50 transition-all duration-300 {% if listing.id in favorite_ids %}favorited{% endif %}"
+                class="heart-btn absolute top-3 right-3 z-10 w-8 h-8 bg-dark-900/80 rounded-full flex items-center justify-center hover:bg-dark-800 transition-colors {% if listing.id in favorite_ids %}favorited{% endif %}"
                 data-listing-id="{{ listing.id }}"
                 onclick="toggleFavorite(event, {{ listing.id }})"
             >
-                <svg class="heart-icon w-5 h-5 text-slate-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="heart-icon w-4 h-4 text-slate-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
             </button>
@@ -225,31 +138,28 @@
 
             <a href="/listings/{{ listing.id }}" class="block">
                 {% if listing.image_url %}
-                <div class="relative overflow-hidden">
-                    <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-52 object-cover group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-dark-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-48 object-cover" loading="lazy">
                 {% else %}
-                <div class="w-full h-52 bg-dark-700 flex items-center justify-center">
+                <div class="w-full h-48 bg-dark-700 flex items-center justify-center">
                     <svg class="w-12 h-12 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                 </div>
                 {% endif %}
-                <div class="p-5">
-                    <h3 class="font-bold text-lg text-slate-100 group-hover:text-primary transition-colors">{{ listing.title }}</h3>
-                    <div class="mt-3 flex justify-between items-center">
-                        <span class="text-primary font-bold text-lg">${{ "%.2f"|format(listing.ticket_price) }}</span>
-                        <span class="text-sm text-slate-400 bg-dark-700 px-2 py-1 rounded-lg">{{ listing.tickets_sold }}/{{ listing.max_tickets }} sold</span>
+                <div class="p-4">
+                    <h3 class="font-semibold text-white group-hover:text-primary-light transition-colors">{{ listing.title }}</h3>
+                    <div class="mt-2 flex justify-between items-center">
+                        <span class="text-white font-bold">${{ "%.2f"|format(listing.ticket_price) }}</span>
+                        <span class="text-xs text-slate-400">{{ listing.tickets_sold }}/{{ listing.max_tickets }} sold</span>
                     </div>
-                    <div class="mt-3">
-                        <div class="w-full bg-dark-700 rounded-full h-2.5 overflow-hidden">
-                            <div class="progress-bar bg-gradient-to-r from-primary to-secondary rounded-full h-2.5 transition-all duration-1000" style="width: 0%" data-width="{{ (listing.tickets_sold / listing.max_tickets * 100)|int }}"></div>
+                    <div class="mt-2">
+                        <div class="w-full bg-dark-700 rounded-full h-1.5">
+                            <div class="progress-bar bg-primary rounded-full h-1.5 transition-all duration-500" style="width: 0%" data-width="{{ (listing.tickets_sold / listing.max_tickets * 100)|int }}"></div>
                         </div>
                     </div>
                     {% if listing.deadline %}
-                    <div class="mt-3 flex items-center text-sm text-slate-500">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mt-2 flex items-center text-xs text-slate-500">
+                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         Ends {{ listing.deadline.strftime('%b %d, %Y') }}
@@ -261,17 +171,14 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="text-center py-16 bg-dark-800 border border-slate-700/50 rounded-2xl reveal-zoom">
-        <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="text-center py-12 bg-dark-800 border border-dark-700 rounded-xl reveal">
+        <svg class="w-12 h-12 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
         </svg>
-        <p class="text-slate-400 text-lg">No active raffles at the moment.</p>
+        <p class="text-slate-400">No active raffles at the moment.</p>
         {% if user %}
-        <a href="/listings/create" class="mt-4 inline-flex items-center text-primary hover:text-secondary font-semibold group">
-            Create the first one
-            <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
+        <a href="/listings/create" class="mt-3 inline-flex items-center text-primary hover:text-primary-light font-medium">
+            Create the first one →
         </a>
         {% endif %}
     </div>
@@ -281,24 +188,6 @@
 <!-- Scripts -->
 <script>
 (function() {
-    // ============ PARALLAX EFFECT ============
-    const hero = document.getElementById('hero');
-    const slides = document.querySelectorAll('.hero-slide img');
-
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const heroHeight = hero.offsetHeight;
-
-        if (scrolled < heroHeight) {
-            const parallaxValue = scrolled * 0.4;
-            const scaleValue = 1.1 + (scrolled * 0.0003);
-
-            slides.forEach(img => {
-                img.style.transform = `scale(${scaleValue}) translateY(${parallaxValue}px)`;
-            });
-        }
-    });
-
     // ============ SLIDESHOW ============
     const slideElements = document.querySelectorAll('.hero-slide');
     const indicators = document.querySelectorAll('.slide-indicator');
@@ -343,29 +232,23 @@
     startAutoSlide();
 
     // ============ SCROLL REVEAL ============
-    const revealElements = document.querySelectorAll('.reveal, .reveal-zoom, .reveal-left, .reveal-right');
-
+    const revealElements = document.querySelectorAll('.reveal');
     const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('revealed');
             }
         });
-    }, {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    });
+    }, { threshold: 0.1 });
 
     revealElements.forEach(el => revealObserver.observe(el));
 
     // ============ PROGRESS BAR ANIMATION ============
     const progressBars = document.querySelectorAll('.progress-bar');
-
     const progressObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                const width = entry.target.dataset.width;
-                entry.target.style.width = width + '%';
+                entry.target.style.width = entry.target.dataset.width + '%';
             }
         });
     }, { threshold: 0.5 });
@@ -379,35 +262,17 @@ function toggleFavorite(event, listingId) {
     event.stopPropagation();
 
     const btn = event.currentTarget;
-    const icon = btn.querySelector('.heart-icon');
-    const isFavorited = btn.classList.contains('favorited');
-
-    // Optimistic UI update
     btn.classList.toggle('favorited');
-    icon.classList.add('heart-burst');
 
-    setTimeout(() => {
-        icon.classList.remove('heart-burst');
-    }, 500);
-
-    // Send request to server
     fetch(`/favorites/${listingId}/toggle`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin'
     })
     .then(response => {
-        if (!response.ok) {
-            // Revert on error
-            btn.classList.toggle('favorited');
-        }
+        if (!response.ok) btn.classList.toggle('favorited');
     })
-    .catch(() => {
-        // Revert on error
-        btn.classList.toggle('favorited');
-    });
+    .catch(() => btn.classList.toggle('favorited'));
 }
 </script>
 {% endblock %}
